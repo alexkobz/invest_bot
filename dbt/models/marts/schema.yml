@@ -1,0 +1,30 @@
+version: 2
+
+models:
+#  - name: fct_gir_bo
+#    description: "Table of fundamentals russian companies from https://bo.nalog.ru/"
+#    columns:
+#      - name: inn
+#        description: "INN of organization"
+#      - name: year
+#        description: "year of reporting"
+#    constraints:
+#      - type: primary_key
+#        columns: [ "inn", "year" ]
+  - name: dim_moex_boards
+    description: "Dimension table of moex boards"
+    columns:
+      - name: id
+        description: "id of board from moex"
+      - name: board_group_id
+      - name: boardid
+        description: "Unique code of a board"
+      - name: title
+        description: "Name of board"
+      - name: is_traded
+    constraints:
+      - type: primary_key
+        columns: 'id'
+    config:
+      materialized: table
+      tags: [ 'sql' ]

@@ -1,0 +1,27 @@
+version: 2
+
+models:
+#  - name: stg_gir_bo
+#    description: "Staging of fundamentals russian companies from https://bo.nalog.ru/"
+#    config:
+#      materialized: table
+#      tags: [ 'python' ]
+  - name: stg_moex_boards
+    columns:
+      - name: id
+      - name: board_group_id
+      - name: boardid
+      - name: title
+      - name: is_traded
+      - name: load_ts
+    config:
+      materialized: view
+
+sources:
+  - name: moex
+    database: invest
+    schema: public
+    tables:
+      - name: api_moex_boards
+
+#      tags: [ 'python' ]
