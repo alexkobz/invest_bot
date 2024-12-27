@@ -1,0 +1,14 @@
+target/
+dbt_packages/
+dbt/profiles.yml
+dbt/.user.yml
+.idea
+.venv
+.env
+**/.DS_Store
+**/__pycache__
+**/.ipynb_checkpoints
+*.log
+*.pickle
+*.pid
+*.out
