@@ -28,3 +28,59 @@ models:
     config:
       materialized: table
       tags: [ 'sql' ]
+  - name: dim_moex_securitites
+    description: "Dimension table of securities on MOEX"
+    columns:
+      - name: id
+      - name: secid
+      - name: shortname
+      - name: regnumber
+      - name: name
+      - name: isin
+      - name: is_traded
+      - name: id_emitent
+      - name: type
+      - name: grp
+      - name: boardid
+    constraints:
+      - type: primary_key
+        columns: ['secid', 'boardid']
+    config:
+      materialized: table
+      tags: [ 'sql' ]
+  - name: dim_moex_securitites_trading
+    description: "Dimension table of securities actively traded on MOEX"
+    columns:
+      - name: id
+      - name: secid
+      - name: shortname
+      - name: regnumber
+      - name: name
+      - name: isin
+      - name: is_traded
+      - name: id_emitent
+      - name: type
+      - name: grp
+      - name: boardid
+    constraints:
+      - type: primary_key
+        columns: ['secid', 'boardid']
+    config:
+      materialized: table
+      tags: [ 'sql' ]
+  - name: dim_rudata_emitents
+    description: "Dimension table of emitents"
+    constraints:
+      - type: primary_key
+        columns: 'id_emitent'
+    config:
+      materialized: table
+      tags: [ 'sql' ]
+  - name: fct_moex_prices
+    description: "Fact table of prices from moex"
+    constraints:
+      - type: primary_key
+        columns: ['secid', 'boardid', 'tradedate']
+    config:
+      materialized: table
+      tags: [ 'sql' ]

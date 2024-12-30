@@ -23,4 +23,3 @@ models:
       +schema: marts
       +materialized: table
   +incremental_strategy: "insert_overwrite"
-

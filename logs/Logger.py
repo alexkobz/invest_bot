@@ -3,6 +3,8 @@ import sys
 from datetime import datetime as dt
 from functools import wraps
 
+from pandas import DataFrame
+
 
 class Logger(logging.Logger):
     """
@@ -40,4 +42,21 @@ class Logger(logging.Logger):
             except Exception as e:
                 cls._instance.exception(msg=f"Getting token failed.\nException: {str(e)}")
                 sys.exit(0)
+        return wrapper
+
+    @classmethod
+    def logDF(cls, func):
+        """
+        This function is for RuData client
+        Записывает начало и конец посылания запросов для определенного адреса
+        """
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                cls._instance.info(f"{args[0].key} started")
+                result: DataFrame = func(*args, **kwargs)
+                cls._instance.info(f"{args[0].key} finished. {args[0].key} shape {result.shape}")
+                return result
+            except Exception as e:
+                cls._instance.exception(msg=f"Exception raised in {args[0].key}.\n{str(e)}\nRetry\n")
         return wrapper

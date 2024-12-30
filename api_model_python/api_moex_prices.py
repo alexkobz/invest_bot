@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text as sa_text
 
-from clients.Moex.MoexAPI import Boards
+from clients.Moex.MoexAPI import Prices
 from clients.Moex.iss_client import (Config,
                                      MicexAuth,
-                                     MicexISSClientBoards)
+                                     MicexISSClientPrices)
 from exceptions.MoexAuthenticationError import MoexAuthenticationError
 from src.path import get_project_root, Path
 from logs.Logger import Logger
@@ -16,7 +16,7 @@ from logs.Logger import Logger
 
 logger = Logger()
 
-def api_moex_boards():
+def api_moex_prices():
     env_path: Path = Path.joinpath(get_project_root(), '.env')
     load_dotenv(env_path)
     my_config: Config = Config(
@@ -32,12 +32,27 @@ def api_moex_boards():
                         f"{os.environ['POSTGRES_PORT']}/"
                         f"{os.environ['POSTGRES_DATABASE']}")
         engine = create_engine(DATABASE_URI)
-        iss = MicexISSClientBoards(my_config, my_auth)
-        df: pd.DataFrame = iss.get_data(Boards)
-        df.columns = df.columns.str.lstrip('@')
-        engine.execute(sa_text(f'''TRUNCATE TABLE {Boards.table_name}''').execution_options(autocommit=True))
-        df.to_sql(name=Boards.table_name, con=engine, if_exists='append', index=False)
-        logger.info(f"{Boards.table_name} downloaded successfully")
+        boardids = (
+            pd.read_sql(
+                """
+                SELECT DISTINCT boardid
+                FROM public_marts.dim_moex_boards
+                WHERE is_traded = true
+                """
+                , engine
+            )['boardid']
+            .to_list()
+        )
+        moex_prices_df: pd.DataFrame = pd.DataFrame()
+        iss = MicexISSClientPrices(my_config, my_auth)
+        for boardid in boardids:
+            Price = Prices(board=boardid)
+            df: pd.DataFrame = iss.get_data(Price)
+            moex_prices_df = pd.concat([moex_prices_df, df], axis=0)
+        moex_prices_df.columns = moex_prices_df.columns.str.lower()
+        engine.execute(sa_text(f'''TRUNCATE TABLE {Prices.table_name}''').execution_options(autocommit=True))
+        moex_prices_df.to_sql(name=Prices.table_name, con=engine, if_exists='append', index=False)
+        logger.info(f"{Prices.table_name} downloaded successfully")
     else:
-        logger.exception(f"{str(MoexAuthenticationError)}")
+        logger.info(f"{str(MoexAuthenticationError)}")
         raise MoexAuthenticationError()
