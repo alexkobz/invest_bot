@@ -5,7 +5,7 @@ models:
 #    description: "Staging of fundamentals russian companies from https://bo.nalog.ru/"
 #    config:
 #      materialized: table
-#      tags: [ 'python' ]
+#      tags: [ python ]
   - name: stg_moex_boards
     columns:
       - name: id
@@ -16,6 +16,58 @@ models:
       - name: load_ts
     config:
       materialized: view
+  - name: stg_moex_securities_trading
+    columns:
+      - name: id
+      - name: secid
+      - name: shortname
+      - name: regnumber
+      - name: name
+      - name: isin
+      - name: is_traded
+      - name: emitent_id
+      - name: emitent_title
+      - name: emitent_inn
+      - name: emitent_okpo
+      - name: gosreg
+      - name: type
+      - name: group
+      - name: primary_boardid
+      - name: marketprice_boardid
+      - name: load_ts
+    config:
+      materialized: view
+  - name: stg_moex_prices
+    columns:
+      - name: boardid
+      - name: tradedate
+      - name: shortname
+      - name: secid
+      - name: numtrades
+      - name: value
+      - name: open
+      - name: low
+      - name: high
+      - name: legalcloseprice
+      - name: waprice
+      - name: close
+      - name: volume
+      - name: marketprice2
+      - name: marketprice3
+      - name: admittedquote
+      - name: mp2valtrd
+      - name: marketprice3tradesvalue
+      - name: admittedvalue
+      - name: waval
+      - name: tradingsession
+      - name: currencyid
+      - name: trendclspr
+      - name: load_ts
+    config:
+      materialized: view
+  - name: stg_rudata_emitents
+    config:
+      materialized: view
 
 sources:
   - name: moex
@@ -23,5 +75,10 @@ sources:
     schema: public
     tables:
       - name: api_moex_boards
-
-#      tags: [ 'python' ]
+      - name: api_moex_securities_trading
+      - name: api_moex_prices
+  - name: rudata
+    database: invest
+    schema: public
+    tables:
+      - name: api_rudata_emitents

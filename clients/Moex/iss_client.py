@@ -17,8 +17,7 @@ from typing import override
 
 import pandas as pd
 import xmltodict
-from sqlalchemy import create_engine
-from clients.Moex.MoexAPI import Request
+from clients.Moex.MoexAPI import Request, Prices, Securities, SecuritiesTrading, Boards
 
 
 class Config:
@@ -34,10 +33,23 @@ class Config:
 class MicexAuth:
     """User authentication data and functions."""
 
+    _instance = None
+
     def __init__(self, config):
+        if self._instance.__initialized:
+            return
+        self._instance.__initialized = True
+
         self.config = config
         self.cookie_jar = http.cookiejar.CookieJar()
         self.auth()
+
+    @staticmethod
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.__initialized = False
+        return cls._instance
 
     def auth(self):
         """Authenticate the user."""
@@ -77,18 +89,6 @@ class MicexAuth:
         return bool(self.passport and not self.passport.is_expired())
 
 
-class MicexISSDataHandler:
-    """Data handler which will be called by the ISS client to handle downloaded data."""
-
-    def __init__(self, DATABASE_URI: str):
-        self.engine = create_engine(DATABASE_URI)
-        self.data = []
-
-    def insert(self, result, table_name):
-        """Process the data."""
-        result.to_sql(table_name, con=self.engine, if_exists='append', index=False)
-
-
 class MicexISSClient:
     """Methods for interacting with the MICEX ISS server."""
 
@@ -106,14 +106,52 @@ class MicexISSClient:
             )
         urllib.request.install_opener(self.opener)
 
+    def get_data(self, method: Request) -> pd.DataFrame:
+        pass
+
     def data(self, method: Request) -> pd.DataFrame:
         raise NotImplementedError("Subclasses must implement this method.")
 
 
-class MicexISSClientHistorySecurities(MicexISSClient):
+class MicexISSClientBoards(MicexISSClient):
 
     @override
-    def get_data(self, method: Request) -> pd.DataFrame:
+    def get_data(self, method: Boards) -> pd.DataFrame:
+        """Get and parse historical data."""
+        url = method.url
+        response = self.opener.open(url)
+        boards = response.read().decode('utf-8')
+        data = xmltodict.parse(boards)
+        result = pd.DataFrame(data['document']['data']['rows']['row'])
+        return result
+
+
+class MicexISSClientSecurities(MicexISSClient):
+
+    @override
+    def get_data(self, method: SecuritiesTrading) -> pd.DataFrame:
+        url = method.url
+        start = 0
+        result = pd.DataFrame()
+        while True:
+            res = self.opener.open(f"{url}&start={start}")
+            boards = res.read().decode('utf-8')
+            data = xmltodict.parse(boards)
+            if not data:
+                break
+            try:
+                chunk = pd.DataFrame(data['document']['data']['rows']['row'])
+            except TypeError:
+                break
+            result = pd.concat([result, chunk], axis=0)
+            start += chunk.shape[0]
+        return result
+
+
+class MicexISSClientPrices(MicexISSClient):
+
+    @override
+    def get_data(self, method: Prices) -> pd.DataFrame:
         """Get and parse historical data."""
         url = method.url % {
             'engine': method.engine,
@@ -131,26 +169,12 @@ class MicexISSClientHistorySecurities(MicexISSClient):
             jhist = jres['history']
             jdata = jhist['data']
             jcols = jhist['columns']
-            print(len(jdata))
             if not jdata:
                 break
 
             chunk = pd.DataFrame(data=jdata, columns=jcols)
             result = pd.concat([result, chunk], axis=0)
             start += len(jdata)
-        return result
-
-
-class MicexISSClientBoards(MicexISSClient):
-
-    @override
-    def get_data(self, method: Request) -> pd.DataFrame:
-        """Get and parse historical data."""
-        url = method.url
-        response = self.opener.open(url)
-        boards = response.read().decode('utf-8')
-        data = xmltodict.parse(boards)
-        result = pd.DataFrame(data['document']['data']['rows']['row'])
         return result
 
 

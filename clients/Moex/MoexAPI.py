@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 from datetime import datetime as dt, timedelta
 
-# from functions.get_date import last_day_month_str, last_work_date_month, last_work_date_month_str
+from src.get_date import yesterday_str
 
 
 class Request:
@@ -43,20 +43,48 @@ class Shares(Request):
 @dataclass
 class Boards(Request):
     """
-    Shares
+    Boards
     """
     url: str = 'https://iss.moex.com/iss/engines/stock/markets/shares/boards.xml'
     table_name: str = "api_moex_boards"
-    
 
 
-        
-    # """
-    # Shares
-    # """
-    # url: str = 'http://iss.moex.com/iss/history/engines/%(engine)s/markets/%(market)s/boards/%(board)s/securities.json?date=%(date)s'
-    # engine: str = "stock"
-    # market: str = "shares"
-    # board: str = "eqne"
-    # date: str = "2010-04-29"
-    # table_name: str = "stg_moex_shares_prices"
+@dataclass
+class SecuritiesStock(Request):
+    """
+    Securities with engine=stock
+    """
+    url: str = 'https://iss.moex.com/iss/securities.xml?engine=stock'
+    table_name: str = "api_moex_securities_stock"
+
+
+@dataclass
+class SecuritiesTrading(Request):
+    """
+    Shares trading
+    """
+    url: str = 'https://iss.moex.com/iss/securities.xml?is_trading=1'
+    table_name: str = "api_moex_securities_trading"
+
+
+@dataclass
+class Securities(Request):
+    """
+    Securities
+    """
+    url: str = 'https://iss.moex.com/iss/securities.xml'
+    table_name: str = "api_moex_securities"
+
+
+@dataclass
+class Prices(Shares):
+    """
+    Shares
+    """
+    url: str = 'http://iss.moex.com/iss/history/engines/%(engine)s/markets/%(market)s/boards/%(board)s/securities.json?date=%(date)s'
+    engine: str = "stock"
+    market: str = "shares"
+    board: str = ""
+    # date: str = '2024-12-27'
+    date: str = yesterday_str
+    table_name: str = "api_moex_prices"

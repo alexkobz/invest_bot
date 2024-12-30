@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text as sa_text
 
-from clients.Moex.MoexAPI import Boards
+from clients.Moex.MoexAPI import SecuritiesTrading
 from clients.Moex.iss_client import (Config,
                                      MicexAuth,
-                                     MicexISSClientBoards)
+                                     MicexISSClientSecurities)
 from exceptions.MoexAuthenticationError import MoexAuthenticationError
 from src.path import get_project_root, Path
 from logs.Logger import Logger
@@ -16,7 +16,7 @@ from logs.Logger import Logger
 
 logger = Logger()
 
-def api_moex_boards():
+def api_moex_securities_trading():
     env_path: Path = Path.joinpath(get_project_root(), '.env')
     load_dotenv(env_path)
     my_config: Config = Config(
@@ -32,12 +32,12 @@ def api_moex_boards():
                         f"{os.environ['POSTGRES_PORT']}/"
                         f"{os.environ['POSTGRES_DATABASE']}")
         engine = create_engine(DATABASE_URI)
-        iss = MicexISSClientBoards(my_config, my_auth)
-        df: pd.DataFrame = iss.get_data(Boards)
+        iss = MicexISSClientSecurities(my_config, my_auth)
+        df: pd.DataFrame = iss.get_data(SecuritiesTrading)
         df.columns = df.columns.str.lstrip('@')
-        engine.execute(sa_text(f'''TRUNCATE TABLE {Boards.table_name}''').execution_options(autocommit=True))
-        df.to_sql(name=Boards.table_name, con=engine, if_exists='append', index=False)
-        logger.info(f"{Boards.table_name} downloaded successfully")
+        engine.execute(sa_text(f'''TRUNCATE TABLE {SecuritiesTrading.table_name}''').execution_options(autocommit=True))
+        df.to_sql(name=SecuritiesTrading.table_name, con=engine, if_exists='append', index=False)
+        logger.info(f"{SecuritiesTrading.table_name} downloaded successfully")
     else:
-        logger.exception(f"{str(MoexAuthenticationError)}")
+        logger.info(f"{str(MoexAuthenticationError)}")
         raise MoexAuthenticationError()
