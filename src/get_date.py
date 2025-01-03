@@ -1,4 +1,6 @@
 from datetime import date, timedelta
+from io import BytesIO
+
 import pandas as pd
 import requests
 
@@ -24,11 +26,13 @@ def get_last_work_date_month() -> date:
                               "Chrome/83.0.4103.97 Safari/537.36"
             }
         )
-        holidays = pd.to_datetime(pd.Series(holidays.text.split())).tolist()
-        while last_day_month_copy in holidays:
+        txt = pd.read_csv(BytesIO(holidays.content), header=None).rename(columns={0: 'holidays'})
+        txt['holidays'] = pd.to_datetime(txt['holidays'])
+        txt.to_csv("./dbt/seeds/calendar.csv")
+        while last_day_month_copy in txt['holidays']:
             last_day_month_copy -= timedelta(days=1)
     except:
-        holidays = pd.read_csv("./data/Input/calendar.csv", header=None, sep=";")
+        holidays = pd.read_csv("./dbt/seeds/calendar.csv")
         holidays = holidays.loc[holidays[0] == last_day_month.year, last_day_month.month].values[0].split(',')
         holidays = [int(day) for day in holidays]
         while last_day_month_copy.day in holidays:

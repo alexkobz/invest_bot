@@ -2,6 +2,7 @@ import os
 import sys
 
 import pandas as pd
+from airflow.exceptions import AirflowSkipException
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text as sa_text
@@ -32,4 +33,4 @@ def api_rudata_emitents():
         logger.info(f"api_rudata_emitents downloaded successfully. rows: {str(Emitents.shape[0])}")
     else:
         logger.exception("Emitents empty")
-        sys.exit(1)
+        raise AirflowSkipException("Skipping this task as DataFrame is empty")

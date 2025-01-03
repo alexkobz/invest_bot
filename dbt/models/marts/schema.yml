@@ -39,6 +39,7 @@ models:
       - name: isin
       - name: is_traded
       - name: id_emitent
+      - name: inn
       - name: type
       - name: grp
       - name: boardid
@@ -59,6 +60,7 @@ models:
       - name: isin
       - name: is_traded
       - name: id_emitent
+      - name: inn
       - name: type
       - name: grp
       - name: boardid
@@ -68,7 +70,7 @@ models:
     config:
       materialized: table
       tags: [ 'sql' ]
-  - name: dim_rudata_emitents
+  - name: dim_emitents
     description: "Dimension table of emitents"
     constraints:
       - type: primary_key

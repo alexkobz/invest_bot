@@ -1,6 +1,7 @@
 import os
-
 import pandas as pd
+
+from airflow.exceptions import AirflowSkipException
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text as sa_text
@@ -46,9 +47,10 @@ def api_moex_prices():
         moex_prices_df: pd.DataFrame = pd.DataFrame()
         iss = MicexISSClientPrices(my_config, my_auth)
         for boardid in boardids:
-            Price = Prices(board=boardid)
-            df: pd.DataFrame = iss.get_data(Price)
+            df: pd.DataFrame = iss.get_data(boardid)
             moex_prices_df = pd.concat([moex_prices_df, df], axis=0)
+        if moex_prices_df.empty:
+            raise AirflowSkipException("Skipping this task as DataFrame is empty")
         moex_prices_df.columns = moex_prices_df.columns.str.lower()
         engine.execute(sa_text(f'''TRUNCATE TABLE {Prices.table_name}''').execution_options(autocommit=True))
         moex_prices_df.to_sql(name=Prices.table_name, con=engine, if_exists='append', index=False)
