@@ -9,26 +9,27 @@
   )
 }}
 SELECT
-	boardid,
-	cast(tradedate as date) as tradedate,
-	secid,
-	numtrades,
-	value,
-	open,
-	low,
-	high,
-	legalcloseprice,
-	waprice,
-	close,
-	volume,
-	marketprice2,
-	marketprice3,
-	admittedquote,
-	mp2valtrd,
-	marketprice3tradesvalue,
-	admittedvalue,
-	waval,
-	tradingsession,
-	trendclspr
-FROM {{ ref('stg_moex_prices') }}
-WHERE volume > 0
+	sec.boardid,
+	cast(prices.tradedate as date) as tradedate,
+	sec.secid,
+	prices.numtrades,
+	prices.value,
+	prices.open,
+	prices.low,
+	prices.high,
+	prices.legalcloseprice,
+	prices.waprice,
+	prices.close,
+	prices.volume,
+	prices.marketprice2,
+	prices.marketprice3,
+	prices.admittedquote,
+	prices.mp2valtrd,
+	prices.marketprice3tradesvalue,
+	prices.admittedvalue,
+	prices.waval,
+	prices.tradingsession,
+	prices.trendclspr
+FROM {{ ref('stg_moex_prices') }} AS prices
+JOIN {{ ref('dim_moex_securities') }} AS sec ON prices.secid = sec.secid AND prices.boardid = sec.secid
+WHERE prices.volume > 0

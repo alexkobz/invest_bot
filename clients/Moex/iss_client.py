@@ -106,7 +106,7 @@ class MicexISSClient:
             )
         urllib.request.install_opener(self.opener)
 
-    def get_data(self, method: Request) -> pd.DataFrame:
+    def get_data(self) -> pd.DataFrame:
         pass
 
     def data(self, method: Request) -> pd.DataFrame:
@@ -116,9 +116,9 @@ class MicexISSClient:
 class MicexISSClientBoards(MicexISSClient):
 
     @override
-    def get_data(self, method: Boards) -> pd.DataFrame:
+    def get_data(self) -> pd.DataFrame:
         """Get and parse historical data."""
-        url = method.url
+        url = Boards.url
         response = self.opener.open(url)
         boards = response.read().decode('utf-8')
         data = xmltodict.parse(boards)
@@ -129,8 +129,8 @@ class MicexISSClientBoards(MicexISSClient):
 class MicexISSClientSecurities(MicexISSClient):
 
     @override
-    def get_data(self, method: SecuritiesTrading) -> pd.DataFrame:
-        url = method.url
+    def get_data(self) -> pd.DataFrame:
+        url = SecuritiesTrading.url
         start = 0
         result = pd.DataFrame()
         while True:
@@ -151,13 +151,13 @@ class MicexISSClientSecurities(MicexISSClient):
 class MicexISSClientPrices(MicexISSClient):
 
     @override
-    def get_data(self, method: Prices) -> pd.DataFrame:
+    def get_data(self, board: str) -> pd.DataFrame:
         """Get and parse historical data."""
-        url = method.url % {
-            'engine': method.engine,
-            'market': method.market,
-            'board': method.board,
-            'date': method.date,
+        url = Prices.url % {
+            'engine': Prices.engine,
+            'market': Prices.market,
+            'board': board,
+            'date': Prices.date,
         }
 
         start = 0
