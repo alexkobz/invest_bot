@@ -4,10 +4,10 @@ https://docs.efir-net.ru/dh2/#/
 
 from typing import Type, List
 from dataclasses import dataclass, field
-from enum import Enum, IntEnum
+from enum import IntEnum
 from datetime import datetime as dt, timedelta
 
-from src.get_date import last_day_month_str, last_work_date_month, last_work_date_month_str
+from api_model_python.plugins.get_date import last_day_month_str
 
 
 # Ограничение по запросам в секунду

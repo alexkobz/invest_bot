@@ -32,8 +32,8 @@ WITH moex AS (
 	WHERE rn = 1
 )
 SELECT
-    coalesce(CAST(rudata.id_emitent AS INTEGER), CAST(moex.emitent_id AS INTEGER), 0) AS id_emitent,
-    CAST(rudata.fininstid AS INTEGER) AS fininstid,
+    coalesce(CAST(rudata.id_emitent AS BIGINT), CAST(moex.emitent_id AS BIGINT), 0) AS id_emitent,
+    CAST(rudata.fininstid AS BIGINT) AS fininstid,
     rudata.shortname_rus,
     rudata.shortname_eng,
     coalesce(rudata.inn, moex.emitent_inn, '') AS inn,

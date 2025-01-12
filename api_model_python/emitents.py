@@ -1,21 +1,19 @@
 import os
-import sys
 
-import pandas as pd
 from airflow.exceptions import AirflowSkipException
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text as sa_text
 
-from clients.RuData.RuDataDF import RuDataDF
-from clients.RuData.RuDataRequest import RuDataRequest
-from src.path import get_project_root, Path
+from api_model_python.plugins.clients.RuData.RuDataDF import RuDataDF
+from api_model_python.plugins.clients.RuData.RuDataRequest import RuDataRequest
+from api_model_python.plugins.path import get_project_root, Path
 from logs.Logger import Logger
 
 
 logger = Logger()
 
-def api_rudata_emitents():
+def get_emitents():
     env_path: Path = Path.joinpath(get_project_root(), '.env')
     RuDataRequest.set_headers()
     Emitents = RuDataDF("Emitents").df

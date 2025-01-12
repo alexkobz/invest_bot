@@ -2,12 +2,9 @@
 https://www.moex.com/a2920
 """
 
-from typing import Type, List
-from dataclasses import dataclass, field
-from enum import Enum, IntEnum
-from datetime import datetime as dt, timedelta
+from dataclasses import dataclass
 
-from src.get_date import yesterday_str
+from api_model_python.plugins.get_date import yesterday_str
 
 
 class Request:
@@ -88,3 +85,11 @@ class Prices(Shares):
     # date: str = '2024-12-27'
     date: str = yesterday_str
     table_name: str = "api_moex_prices"
+
+@dataclass
+class SettlementsCalendar(Request):
+    """
+    Settlements calendar
+    """
+    url: str = 'https://iss.moex.com//iss/rms/engines/stock/objects/settlementscalendar'
+    table_name: str = "api_moex_settlements_calendar"

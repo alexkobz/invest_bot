@@ -8,8 +8,8 @@
 }}
 
 SELECT
-    CAST(id AS INTEGER) AS id,
-    CAST(board_group_id AS INTEGER) AS board_group_id,
+    CAST(id AS BIGINT) AS id,
+    CAST(board_group_id AS BIGINT) AS board_group_id,
     upper(boardid) AS boardid,
     title AS title,
     CAST(CAST(is_traded AS INTEGER) AS BOOLEAN) AS is_traded

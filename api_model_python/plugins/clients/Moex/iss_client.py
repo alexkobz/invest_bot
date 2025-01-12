@@ -13,11 +13,15 @@ import urllib.parse
 import base64
 import http.cookiejar
 import json
-from typing import override
-
 import pandas as pd
 import xmltodict
-from clients.Moex.MoexAPI import Request, Prices, Securities, SecuritiesTrading, Boards
+from typing import override
+
+from api_model_python.plugins.clients.Moex.MoexAPI import (
+    Request,
+    Prices,
+    SecuritiesTrading,
+    Boards)
 
 
 class Config:

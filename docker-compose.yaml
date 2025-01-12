@@ -72,17 +72,14 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
-    # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR:-.}/api_model_python:/opt/airflow/api_model_python
-    - ${AIRFLOW_PROJ_DIR:-.}/clients:/opt/airflow/clients
     - ${AIRFLOW_PROJ_DIR:-.}/dbt:/opt/airflow/dbt
-    - ${AIRFLOW_PROJ_DIR:-.}/exceptions:/opt/airflow/exceptions
-    - ${AIRFLOW_PROJ_DIR:-.}/src:/opt/airflow/src
+    - invest_data:/opt/airflow/data
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -241,7 +238,7 @@ services:
           echo
         fi
         mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,data}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
@@ -290,5 +287,28 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
+  selenium-firefox:
+    image: selenium/standalone-firefox:latest
+    platform: linux/arm64
+    container_name: selenium-firefox
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    shm_size: "2g"  # Prevent shared memory issues
+    networks:
+      - selenium-network
+    volumes:
+      - invest_data:/opt/airflow/data
+    ports:
+      - "4444:4444"
+    user: "${AIRFLOW_UID:-50000}:0"
+
+networks:
+  selenium-network:
+    driver: bridge
+
 volumes:
   postgres-db-volume:
+  invest_data:
+    external: true

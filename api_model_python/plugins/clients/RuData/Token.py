@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from time import sleep
 from typing import Dict
 
-from clients.RuData import DocsAPI
+from api_model_python.plugins.clients.RuData import DocsAPI
 from logs.Logger import Logger
 
 
