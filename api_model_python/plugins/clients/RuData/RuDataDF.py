@@ -9,11 +9,11 @@ from time import sleep
 from datetime import datetime
 from logs.Logger import Logger
 
-from clients.RuData import DocsAPI
-from clients.RuData.RuDataRequest import RuDataRequest
-from clients.RuData.Token import Token
-from clients.RuData.SavedDF import FintoolReferenceData, Emitents, CompanyGroupMembers, Calendar
-from src.divide_chunks import divide_chunks
+from api_model_python.plugins.clients.RuData import DocsAPI
+from api_model_python.plugins.clients.RuData.RuDataRequest import RuDataRequest
+from api_model_python.plugins.clients.RuData.Token import Token
+from api_model_python.plugins.clients.RuData.SavedDF import FintoolReferenceData, Emitents, CompanyGroupMembers, Calendar
+from api_model_python.plugins.divide_chunks import divide_chunks
 
 logger = Logger()
 

@@ -49,14 +49,14 @@ WITH securities AS (
     WHERE rn = 1
 )
 SELECT DISTINCT
-    cast(securities.id AS INTEGER) AS id,
+    cast(securities.id AS BIGINT) AS id,
     coalesce(securities.secid, prices.secid, '') AS secid,
     securities.shortname,
     securities.regnumber,
     securities.name,
     securities.isin,
     coalesce(CAST(CAST(securities.is_traded AS INTEGER) AS BOOLEAN), true) AS is_traded,
-    coalesce(d.id_emitent, CAST(NULLIF(securities.emitent_id, '') AS INTEGER), 0) AS id_emitent,
+    coalesce(d.id_emitent, CAST(NULLIF(securities.emitent_id, '') AS BIGINT), 0) AS id_emitent,
     coalesce(d.inn, securities.emitent_id, '') AS inn,
     securities.type,
     securities.grp AS grp,

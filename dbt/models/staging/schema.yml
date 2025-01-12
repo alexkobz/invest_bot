@@ -68,6 +68,16 @@ models:
   - name: stg_rudata_emitents
     config:
       materialized: view
+  - name: stg_girbo_organizations_cards
+    columns:
+      - name: inn
+      - name: card
+      - name: load_ts
+    config:
+      materialized: view
+  - name: stg_girbo_fundamentals
+    config:
+      materialized: view
 
 sources:
   - name: moex
@@ -82,3 +92,9 @@ sources:
     schema: public
     tables:
       - name: api_rudata_emitents
+  - name: girbo
+    database: invest
+    schema: public
+    tables:
+      - name: api_girbo_organizations_cards
+      - name: api_girbo_fundamentals

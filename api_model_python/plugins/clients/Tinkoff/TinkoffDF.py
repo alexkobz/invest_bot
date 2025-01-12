@@ -1,10 +1,6 @@
-import asyncio
-from time import sleep
-from typing import Dict, Any, List
-import pandas as pd
+from typing import Dict, Any
 
-from TinkoffClient import DocsAPI
-from logger.Logger import Logger
+from api_model_python.plugins.clients.Tinkoff import DocsAPI
 
 
 class TinkoffDF:

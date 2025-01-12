@@ -6,8 +6,8 @@ from time import sleep
 from typing import Dict
 
 from logs.Logger import Logger
-from clients.RuData.DocsAPI import LIMIT
-from clients.RuData.Token import Token
+from api_model_python.plugins.clients.RuData.DocsAPI import LIMIT
+from api_model_python.plugins.clients.RuData.Token import Token
 
 
 logger = Logger()

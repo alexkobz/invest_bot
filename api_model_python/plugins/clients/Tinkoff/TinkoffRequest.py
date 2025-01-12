@@ -4,7 +4,7 @@ import os
 from time import sleep
 from typing import Dict
 
-from logger.Logger import Logger
+from logs.Logger import Logger
 
 logger = Logger()
 

@@ -10,21 +10,18 @@ import nest_asyncio; nest_asyncio.apply()
 import sys
 import os
 
-
 # Add the `scripts` directory to the Python path
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-from api_model_python.api_moex_prices import api_moex_prices
-from api_model_python.api_moex_securities_trading import api_moex_securities_trading
-from api_model_python.api_rudata_emitents import api_rudata_emitents
-from api_model_python.api_moex_boards import api_moex_boards
+from api_model_python.MoexData import MoexData
+from api_model_python.emitents import get_emitents
 
 
 with DAG(
     dag_id='moex_prices',
     description='A pipeline with downloading prices of shares trading on MOEX',
     start_date=datetime(2024, 12, 27),
-    schedule="0 3 * * *",
+    schedule="0 0 * * *",
     catchup=False,
 ) as dag:
 
@@ -34,13 +31,15 @@ with DAG(
 
         t1_start_moex_api = EmptyOperator(task_id='start_moex_api')
 
+        moex_data = MoexData()
+
         with TaskGroup('moex_securities_trading') as t2_moex_securities_trading:
 
             t1_start_moex_securities_trading = EmptyOperator(task_id='start_moex_securities_trading')
 
             t2_api_moex_securities_trading = PythonOperator(
                 task_id='api_moex_securities_trading',
-                python_callable=api_moex_securities_trading)
+                python_callable=moex_data.get_securities_trading)
 
             t3_stg_moex_securities_trading = BashOperator(
                 task_id='stg_moex_securities_trading',
@@ -64,7 +63,7 @@ with DAG(
 
             t2_api_moex_boards = PythonOperator(
                 task_id='api_moex_boards',
-                python_callable=api_moex_boards)
+                python_callable=moex_data.get_boards)
 
             t3_stg_moex_boards = BashOperator(
                 task_id='stg_moex_boards',
@@ -94,7 +93,7 @@ with DAG(
 
             t2_api_moex_prices = PythonOperator(
                 task_id='api_moex_prices',
-                python_callable=api_moex_prices)
+                python_callable=moex_data.get_prices)
 
             t3_stg_moex_prices = BashOperator(
                 task_id='stg_moex_prices',
@@ -125,7 +124,7 @@ with DAG(
 
         t2_api_rudata_emitents = PythonOperator(
             task_id='api_rudata_emitents',
-            python_callable=api_rudata_emitents)
+            python_callable=get_emitents)
 
         t3_stg_rudata_emitents = BashOperator(
             task_id='stg_rudata_emitents',
