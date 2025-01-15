@@ -81,16 +81,43 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/dbt:/opt/airflow/dbt
     - invest_data:/opt/airflow/data
   user: "${AIRFLOW_UID:-50000}:0"
+#  deploy:
+#    resources:
+#      limits:
+#        cpus: '2'
+#      reservations:
+#        cpus: '.5'
   depends_on:
     &airflow-common-depends-on
     redis:
       condition: service_healthy
     postgres:
       condition: service_healthy
+    postgres-db:
+      condition: service_healthy
 
 services:
+  postgres-db:
+    image: postgres:16
+    container_name: invest-postgres-db
+    env_file:
+      - .env
+    volumes:
+      - postgres-main-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+
   postgres:
     image: postgres:13
+    container_name: airflow_postgres
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
@@ -310,5 +337,6 @@ networks:
 
 volumes:
   postgres-db-volume:
+  postgres-main-volume:
   invest_data:
     external: true

@@ -16,7 +16,7 @@ from api_model_python.plugins.clients.Moex.iss_client import (
     MicexISSClientSecurities)
 from api_model_python.plugins.path import get_project_root, Path
 
-from exceptions.MoexAuthenticationError import MoexAuthenticationError
+from api_model_python.exceptions.MoexAuthenticationError import MoexAuthenticationError
 from logs.Logger import Logger
 
 
