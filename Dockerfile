@@ -6,4 +6,3 @@ USER root
 COPY .env .env
 COPY api_model_python api_model_python
 COPY dbt dbt
-COPY exceptions exceptions
