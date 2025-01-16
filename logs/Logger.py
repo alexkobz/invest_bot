@@ -18,7 +18,7 @@ class Logger(logging.Logger):
         else:
             cls._instance = object.__new__(cls)
             logging.basicConfig(
-                filename=f'./logger/logger_{dt.now().strftime("%Y%m%d%H%M%S")}.log',
+                filename=f'./logs/logger_{dt.now().strftime("%Y%m%d%H%M%S")}.log',
                 filemode='a+',
                 level=logging.INFO,
                 format='%(process)d - %(asctime)s - %(levelname)s - %(message)s'

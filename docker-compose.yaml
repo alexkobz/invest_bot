@@ -81,12 +81,12 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/dbt:/opt/airflow/dbt
     - invest_data:/opt/airflow/data
   user: "${AIRFLOW_UID:-50000}:0"
-#  deploy:
-#    resources:
-#      limits:
-#        cpus: '2'
-#      reservations:
-#        cpus: '.5'
+  deploy:
+    resources:
+      limits:
+        cpus: '2.0'
+      reservations:
+        cpus: '0.25'
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -114,6 +114,12 @@ services:
     restart: always
     extra_hosts:
         - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+        reservations:
+          cpus: '0.02'
 
   postgres:
     image: postgres:13
