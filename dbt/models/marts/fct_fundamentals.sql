@@ -25,7 +25,7 @@
 WITH stg AS (
     SELECT
         *,
-        row_number() OVER(PARTITION BY inn, cast("year" AS INTEGER) ORDER BY cast("reporting_year" AS INTEGER) DESC) AS rn
+        row_number() OVER(PARTITION BY inn, cast("year" AS INTEGER) ORDER BY cast(reporting_year AS INTEGER) DESC) AS rn
     FROM {{ ref("stg_girbo_fundamentals") }}
 )
 SELECT

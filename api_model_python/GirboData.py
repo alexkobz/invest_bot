@@ -6,15 +6,15 @@ from io import BytesIO
 import pandas as pd
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from datetime import date
 from selenium import webdriver
+from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.ie.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text as sa_text
 from time import sleep
-from typing import List, Dict
+from typing import List, Dict, Union
 
 from api_model_python.plugins.path import get_project_root, Path
 
@@ -44,20 +44,24 @@ class GirboData:
         self.options.set_preference("browser.download.folderList", 2)
         self.options.set_preference("browser.download.manager.useWindow", False)
         self.options.set_preference("browser.download.dir", GirboData._download_dir)
-        self.options.set_preference("browser.helperApps.neverAsk.saveToDisk",
-                         "application/pdf, application/force-download")
+        self.options.set_preference(
+            "browser.helperApps.neverAsk.saveToDisk",
+            "application/pdf, application/gzip, application/force-download, text/csv")
         self.options.add_argument("--headless")
         self.options.add_argument('--disable-gpu')
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--disable-dev-shm-usage')
+
 
     def get_organizations_cards(self):
         table_name: str = 'api_girbo_organizations_cards'
         inns: List[str] = (
             pd.read_sql(
                 """
-                SELECT DISTINCT inn
-                FROM public_marts.dim_emitents
+                SELECT DISTINCT e.inn AS inn
+                FROM public_marts.dim_emitents AS e
+                JOIN public_marts.dim_moex_securities_trading AS s 
+                    ON s.id_emitent = e.id_emitent AND s.inn = e.inn
                 """
                 , self.engine
             )['inn']
@@ -72,8 +76,9 @@ class GirboData:
             url = f"https://bo.nalog.ru/search?query={inn}"
             try:
                 driver.get(url)
-            except TimeoutError:
+            except WebDriverException as e:
                 sleep(10)
+                logger.exception(f'{inn} WebDriverException\n{e}')
                 driver.get(url)
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             link = soup.find("a", class_="results-search-table-row")
@@ -126,6 +131,11 @@ class GirboData:
             'download_button': '/html/body/div[1]/main/div[2]/div[1]/div/div/div[2]/div/div[1]/div[2]/div/div/div/div[3]/button',
         }
 
+        os.chdir(GirboData._download_dir)
+        for filename in os.listdir('.'):
+            file_path = os.path.join('.', filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
         cards: List[str] = (
             pd.read_sql(
                 """
@@ -146,7 +156,7 @@ class GirboData:
             url = f"https://bo.nalog.ru/organizations-card/{card}"
             try:
                 driver.get(url)
-            except TimeoutError:
+            except WebDriverException:
                 sleep(10)
                 driver.get(url)
             if __click_button(button_xpath['popup_close_button']):
@@ -272,10 +282,6 @@ class GirboData:
             sa_text(f'''TRUNCATE TABLE {table_name}''').execution_options(autocommit=True))
 
         os.chdir(GirboData._download_dir)
-        today_directory = os.path.join(Path('.'), date.today().strftime("%Y%m%d"))
-        if not os.path.exists(today_directory):
-            os.mkdir(today_directory)
-            os.chdir(today_directory)
         for filename in os.listdir('.'):
             if filename.endswith('.zip'):
                 filename_list = filename.split('_')
