@@ -50,8 +50,8 @@ x-airflow-common:
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
 #  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.10.4}
-  image: invest_airflow:latest
-#  build: .
+#  image: invest_airflow:latest
+  build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -81,12 +81,6 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/dbt:/opt/airflow/dbt
     - invest_data:/opt/airflow/data
   user: "${AIRFLOW_UID:-50000}:0"
-  deploy:
-    resources:
-      limits:
-        cpus: '2.0'
-      reservations:
-        cpus: '0.25'
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -95,6 +89,12 @@ x-airflow-common:
       condition: service_healthy
     postgres-db:
       condition: service_healthy
+  deploy:
+    resources:
+      limits:
+        cpus: '3.0'
+      reservations:
+        cpus: '2.0'
 
 services:
   postgres-db:
@@ -117,9 +117,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.05'
-        reservations:
-          cpus: '0.02'
 
   postgres:
     image: postgres:13
@@ -136,6 +133,10 @@ services:
       retries: 5
       start_period: 5s
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change
@@ -150,6 +151,10 @@ services:
       retries: 50
       start_period: 30s
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
 
   airflow-webserver:
     <<: *airflow-common
@@ -167,6 +172,10 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '2.5'
 
   airflow-scheduler:
     <<: *airflow-common
@@ -182,6 +191,10 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '2.5'
 
   airflow-worker:
     <<: *airflow-common
@@ -205,21 +218,30 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '2.5'
 
-  airflow-triggerer:
-    <<: *airflow-common
-    command: triggerer
-    healthcheck:
-      test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    restart: always
-    depends_on:
-      <<: *airflow-common-depends-on
-      airflow-init:
-        condition: service_completed_successfully
+#  OPTIONAL
+#  airflow-triggerer:
+#    <<: *airflow-common
+#    command: triggerer
+#    healthcheck:
+#      test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+#      start_period: 30s
+#    restart: always
+#    depends_on:
+#      <<: *airflow-common-depends-on
+#      airflow-init:
+#        condition: service_completed_successfully
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '2.5'
 
   airflow-init:
     <<: *airflow-common
@@ -284,41 +306,47 @@ services:
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '2.5'
 
-  airflow-cli:
-    <<: *airflow-common
-    profiles:
-      - debug
-    environment:
-      <<: *airflow-common-env
-      CONNECTION_CHECK_MAX_COUNT: "0"
-    # Workaround for entrypoint issue. See: https://github.com/apache/airflow/issues/16252
-    command:
-      - bash
-      - -c
-      - airflow
+#  OPTIONAL
+#  airflow-cli:
+#    <<: *airflow-common
+#    profiles:
+#      - debug
+#    environment:
+#      <<: *airflow-common-env
+#      CONNECTION_CHECK_MAX_COUNT: "0"
+#    # Workaround for entrypoint issue. See: https://github.com/apache/airflow/issues/16252
+#    command:
+#      - bash
+#      - -c
+#      - airflow
 
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
   # See: https://docs.docker.com/compose/profiles/
-  flower:
-    <<: *airflow-common
-    command: celery flower
-    profiles:
-      - flower
-    ports:
-      - "5555:5555"
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    restart: always
-    depends_on:
-      <<: *airflow-common-depends-on
-      airflow-init:
-        condition: service_completed_successfully
+#  OPTIONAL
+#  flower:
+#    <<: *airflow-common
+#    command: celery flower
+#    profiles:
+#      - flower
+#    ports:
+#      - "5555:5555"
+#    healthcheck:
+#      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+#      start_period: 30s
+#    restart: always
+#    depends_on:
+#      <<: *airflow-common-depends-on
+#      airflow-init:
+#        condition: service_completed_successfully
 
   selenium-firefox:
     image: selenium/standalone-firefox:latest
@@ -336,6 +364,10 @@ services:
     ports:
       - "4444:4444"
     user: "${AIRFLOW_UID:-50000}:0"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
 networks:
   selenium-network:
@@ -345,4 +377,4 @@ volumes:
   postgres-db-volume:
   postgres-main-volume:
   invest_data:
-    external: true
+    driver: local
