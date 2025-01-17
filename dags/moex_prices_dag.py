@@ -158,9 +158,7 @@ with DAG(
         task_id='fct_moex_prices',
         bash_command=f"cd /opt/airflow/dbt && dbt run --select fct_moex_prices")
 
-    t7_finish = EmptyOperator(
-        task_id='finish',
-        trigger_rule='all_done')
+    t7_finish = EmptyOperator(task_id='finish')
 
     (
         t1_start >>

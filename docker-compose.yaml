@@ -50,8 +50,8 @@ x-airflow-common:
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
 #  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.10.4}
-#  image: invest_airflow:latest
-  build: .
+  image: invest_airflow:latest
+#  build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -351,7 +351,7 @@ services:
 
   selenium-firefox:
     image: selenium/standalone-firefox:latest
-    platform: linux/arm64
+    platform: linux/amd64
     container_name: selenium-firefox
     environment:
       - SE_EVENT_BUS_HOST=selenium-hub
