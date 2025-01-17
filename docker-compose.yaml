@@ -117,6 +117,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.5'
 
   postgres:
     image: postgres:13
