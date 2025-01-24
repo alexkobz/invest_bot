@@ -54,14 +54,24 @@ class GirboData:
 
 
     def get_organizations_cards(self):
+
+        def request(url: str) -> None:
+            try:
+                driver.get(url)
+            except WebDriverException as e:
+                sleep(60)
+                logger.exception(f'{inn} WebDriverException')
+                request(url)
+
         table_name: str = 'api_girbo_organizations_cards'
         inns: List[str] = (
             pd.read_sql(
                 """
-                SELECT DISTINCT e.inn AS inn
-                FROM public_marts.dim_emitents AS e
-                JOIN public_marts.dim_moex_securities_trading AS s 
-                    ON s.id_emitent = e.id_emitent AND s.inn = e.inn
+                SELECT DISTINCT inn
+                FROM public_marts.fct_fundamentals
+                WHERE inn NOT IN (
+                    SELECT inn FROM public_marts.dim_girbo_organizations_cards
+                )
                 """
                 , self.engine
             )['inn']
@@ -69,17 +79,14 @@ class GirboData:
         )
         self.engine.execute(
             sa_text(f'''TRUNCATE TABLE {table_name}''').execution_options(autocommit=True))
+        l = len(inns)
         for inn in inns:
+            l -= 1
             driver = webdriver.Remote(
                 command_executor="http://host.docker.internal:4444/wd/hub",
                 options=self.options)
             url = f"https://bo.nalog.ru/search?query={inn}"
-            try:
-                driver.get(url)
-            except WebDriverException as e:
-                sleep(10)
-                logger.exception(f'{inn} WebDriverException\n{e}')
-                driver.get(url)
+            request(url)
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             link = soup.find("a", class_="results-search-table-row")
             try:
@@ -92,7 +99,7 @@ class GirboData:
                     con=self.engine,
                     if_exists='append',
                     index=False)
-                logger.info(f'{inn} success')
+                logger.info(f'{inn} success\n{l} inns left')
             except AttributeError:
                 pd.DataFrame(
                     data={'inn': [inn], 'card': ['']}
@@ -157,7 +164,7 @@ class GirboData:
             try:
                 driver.get(url)
             except WebDriverException:
-                sleep(10)
+                sleep(60)
                 driver.get(url)
             if __click_button(button_xpath['popup_close_button']):
                 if __click_button(button_xpath['report_button']):

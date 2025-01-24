@@ -33,7 +33,8 @@ with DAG(
 
         t2_api_girbo_organizations_cards = PythonOperator(
             task_id='api_girbo_organizations_cards',
-            python_callable=girbo_data.get_organizations_cards)
+            python_callable=girbo_data.get_organizations_cards,
+            execution_timeout=None)
 
         t3_stg_girbo_organizations_cards = BashOperator(
             task_id='stg_girbo_organizations_cards',
