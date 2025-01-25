@@ -173,10 +173,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '2.5'
 
   airflow-scheduler:
     <<: *airflow-common
@@ -192,10 +188,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '2.5'
 
   airflow-worker:
     <<: *airflow-common
@@ -219,10 +211,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '2.5'
 
 #  OPTIONAL
 #  airflow-triggerer:
@@ -294,7 +282,7 @@ services:
           echo
         fi
         mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,data}
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
@@ -307,10 +295,7 @@ services:
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '2.5'
+      - invest_data:/opt/airflow/data
 
 #  OPTIONAL
 #  airflow-cli:
@@ -378,4 +363,4 @@ volumes:
   postgres-db-volume:
   postgres-main-volume:
   invest_data:
-    driver: local
+    external: true
