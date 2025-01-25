@@ -97,28 +97,6 @@ x-airflow-common:
         cpus: '2.0'
 
 services:
-  postgres-db:
-    image: postgres:16
-    container_name: invest-postgres-db
-    env_file:
-      - .env
-    volumes:
-      - postgres-main-volume:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      retries: 5
-      start_period: 5s
-    restart: always
-    extra_hosts:
-        - "host.docker.internal:host-gateway"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-
   postgres:
     image: postgres:13
     container_name: airflow_postgres
@@ -282,7 +260,7 @@ services:
           echo
         fi
         mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,data}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
@@ -295,7 +273,6 @@ services:
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
-      - invest_data:/opt/airflow/data
 
 #  OPTIONAL
 #  airflow-cli:
@@ -334,9 +311,51 @@ services:
 #      airflow-init:
 #        condition: service_completed_successfully
 
+  postgres-db:
+    image: postgres:16
+    container_name: invest-postgres-db
+    env_file:
+      - .env
+    volumes:
+      - invest-db-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.5'
+
+#  clickhouse-server:
+#    image: clickhouse/clickhouse-server:24.3.6
+#    container_name: clickhouse-server
+#    ports:
+#      - "8123:8123"  # HTTP interface
+#      - "9000:9000"
+#    volumes:
+#      - ./data/processed_configs/config.xml:/etc/clickhouse-server/config.xml
+#      - ./data/processed_configs/users.xml:/etc/clickhouse-server/users.xml
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost:8123/ping" ]
+#      interval: 10s
+#      retries: 5
+#      start_period: 5s
+#    restart: always
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.5'
+
   selenium-firefox:
     image: selenium/standalone-firefox:latest
-    platform: linux/amd64
+    platform: linux/arm64
     container_name: selenium-firefox
     environment:
       - SE_EVENT_BUS_HOST=selenium-hub
@@ -361,6 +380,6 @@ networks:
 
 volumes:
   postgres-db-volume:
-  postgres-main-volume:
+  invest-db-volume:
   invest_data:
     external: true
