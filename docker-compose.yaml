@@ -92,7 +92,7 @@ x-airflow-common:
   deploy:
     resources:
       limits:
-        cpus: '3.0'
+        cpus: '2.5'
       reservations:
         cpus: '2.0'
 
@@ -260,7 +260,7 @@ services:
           echo
         fi
         mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,data}
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
@@ -273,6 +273,7 @@ services:
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
+      - invest_data:/opt/airflow/data
 
 #  OPTIONAL
 #  airflow-cli:
@@ -317,7 +318,7 @@ services:
     env_file:
       - .env
     volumes:
-      - invest-db-volume:/var/lib/postgresql/data
+      - postgres-main-volume:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -328,10 +329,10 @@ services:
     restart: always
     extra_hosts:
         - "host.docker.internal:host-gateway"
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '0.5'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
 #  clickhouse-server:
 #    image: clickhouse/clickhouse-server:24.3.6
@@ -355,7 +356,7 @@ services:
 
   selenium-firefox:
     image: selenium/standalone-firefox:latest
-    platform: linux/arm64
+    platform: linux/amd64
     container_name: selenium-firefox
     environment:
       - SE_EVENT_BUS_HOST=selenium-hub
@@ -372,7 +373,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '1.0'
 
 networks:
   selenium-network:
@@ -380,6 +381,6 @@ networks:
 
 volumes:
   postgres-db-volume:
-  invest-db-volume:
+  postgres-main-volume:
   invest_data:
     external: true
