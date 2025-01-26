@@ -54,7 +54,6 @@ class GirboData:
 
 
     def get_organizations_cards(self):
-
         def request(url: str) -> None:
             try:
                 driver.get(url)
@@ -68,7 +67,7 @@ class GirboData:
             pd.read_sql(
                 """
                 SELECT DISTINCT inn
-                FROM public_marts.fct_fundamentals
+                FROM public_marts.dim_emitents
                 WHERE inn NOT IN (
                     SELECT inn FROM public_marts.dim_girbo_organizations_cards
                 )
@@ -117,10 +116,22 @@ class GirboData:
 
     def download_fundamentals(self):
 
+        def request(url: str) -> None:
+            try:
+                driver.get(url)
+            except WebDriverException as e:
+                sleep(60)
+                logger.exception(f'{card} WebDriverException')
+                request(url)
+
         def __click_button(xpath_value: str) -> bool:
-            button: WebElement = driver.find_element(
-                By.XPATH,
-                value=xpath_value)
+            try:
+                button: WebElement = driver.find_element(
+                    By.XPATH,
+                    value=xpath_value)
+            except:
+                logger.info('Button not found')
+                return False
             if button.is_displayed() and button.is_enabled():
                 button.click()
                 return True
@@ -148,6 +159,7 @@ class GirboData:
                 """
                 SELECT DISTINCT card
                 FROM public_marts.dim_girbo_organizations_cards
+                WHERE card IS NOT NULL AND card != '' AND is_loaded IS false
                 """
                 , self.engine
             )['card']
@@ -155,31 +167,32 @@ class GirboData:
         )
         for card in cards:
             driver: WebDriver = webdriver.Remote(
-                # command_executor='http://localhost:4444/wd/hub',
                 command_executor="http://host.docker.internal:4444/wd/hub",
-
-                options=self.options
-            )
+                options=self.options)
             url = f"https://bo.nalog.ru/organizations-card/{card}"
-            try:
-                driver.get(url)
-            except WebDriverException:
-                sleep(60)
-                driver.get(url)
-            if __click_button(button_xpath['popup_close_button']):
-                if __click_button(button_xpath['report_button']):
-                    for year_button in driver.find_elements(
-                            By.XPATH,
-                            value=button_xpath['year_button']):
-                        if year_button.is_displayed() and year_button.is_enabled():
-                            year_button.click()
-                        __click_button(button_xpath['balance_checkbox'])
-                        __click_button(button_xpath['financial_result_checkbox'])
-                        __click_button(button_xpath['capital_change_checkbox'])
-                        __click_button(button_xpath['funds_movement_checkbox'])
-                        __click_button(button_xpath['targeted_funds_using_checkbox'])
-                        __click_button(button_xpath['download_button'])
+            request(url)
+            __click_button(button_xpath['popup_close_button'])
+            if __click_button(button_xpath['report_button']):
+                for year_button in driver.find_elements(
+                        By.XPATH,
+                        value=button_xpath['year_button']):
+                    if year_button.is_displayed() and year_button.is_enabled():
+                        year_button.click()
+                    __click_button(button_xpath['balance_checkbox'])
+                    __click_button(button_xpath['financial_result_checkbox'])
+                    __click_button(button_xpath['capital_change_checkbox'])
+                    __click_button(button_xpath['funds_movement_checkbox'])
+                    __click_button(button_xpath['targeted_funds_using_checkbox'])
+                    __click_button(button_xpath['download_button'])
             driver.quit()
+            self.engine.execute(
+                sa_text(
+                    f"""
+                    UPDATE public_marts.dim_girbo_organizations_cards
+                    SET is_loaded = true
+                    WHERE card = '{card}'
+                    """
+                ).execution_options(autocommit=True))
             logger.info(f"{card} success")
             sleep(1)
 
