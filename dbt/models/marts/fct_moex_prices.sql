@@ -10,14 +10,14 @@
 }}
 SELECT
 	sec.boardid,
-	cast(prices.tradedate as date) as tradedate,
+	CAST(prices.tradedate AS DATE) AS tradedate,
 	sec.secid,
 	prices.numtrades,
 	prices.value,
 	prices.open,
 	prices.low,
 	prices.high,
-	prices.legalcloseprice,
+	CAST(prices.legalcloseprice AS DOUBLE PRECISION) AS legalcloseprice,
 	prices.waprice,
 	prices.close,
 	prices.volume,
@@ -31,5 +31,5 @@ SELECT
 	prices.tradingsession,
 	prices.trendclspr
 FROM {{ ref('stg_moex_prices') }} AS prices
-JOIN {{ ref('dim_moex_securities') }} AS sec ON prices.secid = sec.secid AND prices.boardid = sec.secid
+JOIN {{ ref('dim_moex_securities') }} AS sec ON prices.secid = sec.secid AND prices.boardid = sec.boardid
 WHERE prices.volume > 0

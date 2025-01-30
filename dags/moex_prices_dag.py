@@ -15,7 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 from api_model_python.MoexData import MoexData
 from api_model_python.emitents import get_emitents
-
+from api_model_python.plugins.ReplicationClickHouseOperator import ReplicationClickHouseOperator
 
 with DAG(
     dag_id='moex_prices',
@@ -141,31 +141,53 @@ with DAG(
             t4_finish_rudata_emitents
         )
 
-    t3_dim_emitents = BashOperator(
+    t3_1_replication_moex_boards = ReplicationClickHouseOperator(
+        task_id='replication_moex_boards',
+        filename='moex_boards')
+
+    t3_2_dim_emitents = BashOperator(
         task_id='dim_emitents',
         bash_command=f"cd /opt/airflow/dbt && dbt run --select dim_emitents",
         trigger_rule='all_done')
 
-    t4_dim_moex_securities_trading = BashOperator(
+    t4_1_replication_emitents = ReplicationClickHouseOperator(
+        task_id='replication_emitents',
+        filename='emitents')
+
+    t4_2_dim_moex_securities_trading = BashOperator(
         task_id='dim_moex_securities_trading',
         bash_command=f"cd /opt/airflow/dbt && dbt run --select dim_moex_securities_trading")
 
-    t5_dim_moex_securities = BashOperator(
+    t5_1_replication_moex_securities_trading = ReplicationClickHouseOperator(
+        task_id='replication_moex_securities_trading',
+        filename='moex_securities_trading')
+
+    t5_2_dim_moex_securities = BashOperator(
         task_id='dim_moex_securities',
         bash_command=f"cd /opt/airflow/dbt && dbt run --select dim_moex_securities")
 
-    t6_fct_moex_prices = BashOperator(
+    t6_1_replication_moex_securities = ReplicationClickHouseOperator(
+        task_id='replication_moex_securities',
+        filename='moex_securities')
+
+    t6_2_fct_moex_prices = BashOperator(
         task_id='fct_moex_prices',
         bash_command=f"cd /opt/airflow/dbt && dbt run --select fct_moex_prices")
 
-    t7_finish = EmptyOperator(task_id='finish')
+    t7_replication_moex_prices = ReplicationClickHouseOperator(
+        task_id='replication_moex_prices',
+        filename='moex_prices')
 
-    (
-        t1_start >>
-        [t2_moex_api, t2_emitents] >>
-        t3_dim_emitents >>
-        t4_dim_moex_securities_trading >>
-        t5_dim_moex_securities >>
-        t6_fct_moex_prices >>
-        t7_finish
-    )
+    t8_finish = EmptyOperator(task_id='finish')
+
+    t1_start >> t2_moex_api
+    t1_start >> t2_emitents
+    [t2_moex_api, t2_emitents] >> t3_1_replication_moex_boards
+    [t2_moex_api, t2_emitents] >> t3_2_dim_emitents
+    t3_2_dim_emitents >> t4_1_replication_emitents
+    t3_2_dim_emitents >> t4_2_dim_moex_securities_trading
+    t4_2_dim_moex_securities_trading >> t5_1_replication_moex_securities_trading
+    t4_2_dim_moex_securities_trading >> t5_2_dim_moex_securities
+    t5_2_dim_moex_securities >> t6_1_replication_moex_securities
+    t5_2_dim_moex_securities >> t6_2_fct_moex_prices
+    t6_2_fct_moex_prices >> t7_replication_moex_prices >> t8_finish

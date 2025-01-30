@@ -18,7 +18,7 @@ models:
   invest_bot:
     staging:
       +schema: staging
-      +materialized: table
+      +materialized: view
     marts:
       +schema: marts
       +materialized: table

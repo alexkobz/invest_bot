@@ -1,6 +1,26 @@
 version: 2
 
 models:
+  - name: dim_emitents
+    description: "Dimension table of russian emitents"
+    constraints:
+      - type: primary_key
+        columns: ['id_emitent', 'inn']
+    config:
+      materialized: table
+      tags: [ 'sql' ]
+  - name: dim_girbo_organizations_cards
+    description: "Dimension table of cards (ids) for search queries on https://bo.nalog.ru/query=<inn>"
+    columns:
+      - name: inn
+        description: "INN of organization"
+      - name: card
+        description: "Card of organization search queries"
+    constraints:
+      - type: primary_key
+        columns: [ "inn" ]
+      - type: unique
+        columns: [ "card" ]
   - name: dim_moex_boards
     description: "Dimension table of moex boards"
     columns:
@@ -60,34 +80,8 @@ models:
     config:
       materialized: table
       tags: [ 'sql' ]
-  - name: dim_emitents
-    description: "Dimension table of emitents"
-    constraints:
-      - type: primary_key
-        columns: 'id_emitent'
-    config:
-      materialized: table
-      tags: [ 'sql' ]
-  - name: fct_moex_prices
-    description: "Fact table of prices from moex"
-    constraints:
-      - type: primary_key
-        columns: ['secid', 'boardid', 'tradedate']
-    config:
-      materialized: table
-      tags: [ 'sql' ]
-  - name: dim_girbo_organizations_cards
-    description: "Dimension table of cards (ids) for search queries on https://bo.nalog.ru/query=[inn]"
-    columns:
-      - name: inn
-        description: "INN of organization"
-      - name: card
-        description: "Card of organization search queries"
-    constraints:
-      - type: primary_key
-        columns: [ "inn" ]
   - name: fct_fundamentals
-    description: "Table of fundamentals russian companies from https://bo.nalog.ru/"
+    description: "Table of fundamentals.sql russian companies from https://bo.nalog.ru/"
     columns:
       - name: inn
         description: "INN of organization"
@@ -96,3 +90,33 @@ models:
     constraints:
       - type: primary_key
         columns: [ "inn", "year" ]
+  - name: fct_moex_prices
+    description: "Fact table of prices from moex"
+    columns:
+      - name: boardid
+      - name: tradedate
+      - name: secid
+      - name: numtrades
+      - name: value
+      - name: open
+      - name: low
+      - name: high
+      - name: legalcloseprice
+      - name: waprice
+      - name: close
+      - name: volume
+      - name: marketprice2
+      - name: marketprice3
+      - name: admittedquote
+      - name: mp2valtrd
+      - name: marketprice3tradesvalue
+      - name: admittedvalue
+      - name: waval
+      - name: tradingsession
+      - name: trendclspr
+    constraints:
+      - type: primary_key
+        columns: ['secid', 'boardid', 'tradedate']
+    config:
+      materialized: table
+      tags: [ 'sql' ]

@@ -334,30 +334,32 @@ services:
         limits:
           cpus: '0.5'
 
-#  clickhouse-server:
-#    image: clickhouse/clickhouse-server:24.3.6
-#    container_name: clickhouse-server
-#    ports:
-#      - "8123:8123"  # HTTP interface
-#      - "9000:9000"
-#    volumes:
-#      - ./data/processed_configs/config.xml:/etc/clickhouse-server/config.xml
-#      - ./data/processed_configs/users.xml:/etc/clickhouse-server/users.xml
+  clickhouse-server:
+    image: clickhouse/clickhouse-server:24.3.6
+    container_name: clickhouse-server
+    ports:
+      - "8123:8123"  # HTTP interface
+      - "9000:9000"
+    volumes:
+      - ./data/processed_configs/config.xml:/etc/clickhouse-server/config.xml
+      - ./data/processed_configs/users.xml:/etc/clickhouse-server/users.xml
+      - clickhouse-volume:/var/lib/clickhouse
+    restart: always
 #    healthcheck:
 #      test: [ "CMD", "curl", "-f", "http://localhost:8123/ping" ]
 #      interval: 10s
 #      retries: 5
 #      start_period: 5s
-#    restart: always
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '0.5'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
   selenium-firefox:
     image: selenium/standalone-firefox:latest
     platform: linux/amd64
     container_name: selenium-firefox
+    restart: on-failure
     environment:
       - SE_EVENT_BUS_HOST=selenium-hub
       - SE_EVENT_BUS_PUBLISH_PORT=4442
@@ -382,5 +384,6 @@ networks:
 volumes:
   postgres-db-volume:
   postgres-main-volume:
+  clickhouse-volume:
   invest_data:
     external: true

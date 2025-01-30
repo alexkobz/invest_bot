@@ -2,7 +2,7 @@ version: 2
 
 models:
 #  - name: stg_gir_bo
-#    description: "Staging of fundamentals russian companies from https://bo.nalog.ru/"
+#    description: "Staging of fundamentals.sql russian companies from https://bo.nalog.ru/"
 #    config:
 #      materialized: table
 #      tags: [ python ]
