@@ -14,7 +14,7 @@ SELECT DISTINCT
     d.regnumber,
     d.name,
     d.isin,
-    d.is_traded AS is_traded,
+    d.is_traded,
     d.id_emitent,
     d.inn,
     d.type,
