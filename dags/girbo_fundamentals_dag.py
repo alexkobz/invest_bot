@@ -77,18 +77,23 @@ with DAG(
             task_id='stg_girbo_fundamentals',
             bash_command=f"cd /opt/airflow/dbt && dbt run --select stg_girbo_fundamentals")
 
-        t4_fct_fundamentals = BashOperator(
+        t4_hst_girbo_fundamentals = BashOperator(
+            task_id='hst_girbo_fundamentals',
+            bash_command=f"cd /opt/airflow/dbt && dbt run --select hst_girbo_fundamentals")
+
+        t5_fct_fundamentals = BashOperator(
             task_id='fct_fundamentals',
             bash_command=f"cd /opt/airflow/dbt && dbt run --select fct_fundamentals")
 
-        t5_finish_parse_fundamentals = EmptyOperator(task_id='finish_parse_fundamentals')
+        t6_finish_parse_fundamentals = EmptyOperator(task_id='finish_parse_fundamentals')
 
         (
             t1_start_parse_fundamentals >>
             t2_parse_fundamentals >>
             t3_stg_girbo_fundamentals >>
-            t4_fct_fundamentals >>
-            t5_finish_parse_fundamentals
+            t4_hst_girbo_fundamentals >>
+            t5_fct_fundamentals >>
+            t6_finish_parse_fundamentals
         )
 
     t5_replication_girbo_organizations_cards = ReplicationClickHouseOperator(

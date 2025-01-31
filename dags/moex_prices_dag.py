@@ -99,7 +99,11 @@ with DAG(
                 task_id='stg_moex_prices',
                 bash_command=f"cd /opt/airflow/dbt && dbt run --select stg_moex_prices")
 
-            t4_finish_moex_prices = EmptyOperator(
+            t4_hst_moex_prices = BashOperator(
+                task_id='hst_moex_prices',
+                bash_command=f"cd /opt/airflow/dbt && dbt run --select hst_moex_prices")
+
+            t5_finish_moex_prices = EmptyOperator(
                 task_id='finish_moex_prices',
                 trigger_rule='all_done')
 
@@ -107,7 +111,8 @@ with DAG(
                 t1_start_moex_prices >>
                 t2_api_moex_prices >>
                 t3_stg_moex_prices >>
-                t4_finish_moex_prices
+                t4_hst_moex_prices >>
+                t5_finish_moex_prices
             )
 
         t3_finish_moex_api = EmptyOperator(task_id='finish_moex_api')
