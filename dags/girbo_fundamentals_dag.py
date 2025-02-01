@@ -19,7 +19,7 @@ from api_model_python.plugins.ReplicationClickHouseOperator import ReplicationCl
 
 with DAG(
     dag_id='girbo_fundamentals',
-    description='A pipeline with downloading fundamentals.sql from https://bo.nalog.ru/',
+    description='A pipeline with downloading fundamentals from https://bo.nalog.ru/',
     start_date=datetime(2025, 1, 12),
     schedule=None,
     catchup=False,

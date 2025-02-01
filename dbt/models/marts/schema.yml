@@ -81,7 +81,7 @@ models:
       materialized: table
       tags: [ 'sql' ]
   - name: fct_fundamentals
-    description: "Table of fundamentals.sql russian companies from https://bo.nalog.ru/"
+    description: "Table of fundamentals of russian companies from https://bo.nalog.ru/"
     columns:
       - name: inn
         description: "INN of organization"

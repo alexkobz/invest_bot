@@ -5,8 +5,8 @@
 .vscode/
 dbt_packages/
 target/
-data/processed_configs/config.xml
-data/processed_configs/users.xml
+clickhouse/processed_configs/config.xml
+clickhouse/processed_configs/users.xml
 **/.DS_Store
 .env
 *.log

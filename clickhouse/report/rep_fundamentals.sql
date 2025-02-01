@@ -1,4 +1,4 @@
-INSERT INTO fundamentals
+CREATE MATERIALIZED VIEW rep_fundamentals AS
 WITH e AS (
     SELECT * FROM (
         SELECT
@@ -11,15 +11,10 @@ WITH e AS (
         )
     WHERE rn = 1
 )
-SELECT 
+SELECT
 	f.*,
 	e.id_emitent,
 	e.sector,
 	e.country
-FROM pg_fundamentals f
+FROM fundamentals f
 LEFT JOIN e ON e.inn = f.inn
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM fundamentals
-    JOIN f.inn = fundamentals.inn AND f.year = fundamentals.year
-)
