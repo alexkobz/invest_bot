@@ -341,8 +341,8 @@ services:
       - "8123:8123"  # HTTP interface
       - "9000:9000"
     volumes:
-      - ./data/processed_configs/config.xml:/etc/clickhouse-server/config.xml
-      - ./data/processed_configs/users.xml:/etc/clickhouse-server/users.xml
+      - ./clickhouse/data/processed_configs/config.xml:/etc/clickhouse-server/config.xml
+      - ./clickhouse/data/processed_configs/users.xml:/etc/clickhouse-server/users.xml
       - clickhouse-volume:/var/lib/clickhouse
     restart: always
 #    healthcheck:
