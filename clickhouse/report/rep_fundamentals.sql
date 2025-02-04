@@ -1,4 +1,5 @@
-CREATE MATERIALIZED VIEW rep_fundamentals AS
+CREATE MATERIALIZED VIEW mv_fundamentals
+TO rep_fundamentals AS
 WITH e AS (
     SELECT * FROM (
         SELECT
