@@ -1,4 +1,5 @@
-CREATE MATERIALIZED VIEW rep_moex_prices
+CREATE MATERIALIZED VIEW mv_moex_prices
+TO rep_moex_prices AS
 SELECT
 	p.boardid AS boardid,
 	p.tradedate,
