@@ -89,12 +89,6 @@ x-airflow-common:
       condition: service_healthy
     postgres-db:
       condition: service_healthy
-  deploy:
-    resources:
-      limits:
-        cpus: '2.5'
-      reservations:
-        cpus: '2.0'
 
 services:
   postgres:
@@ -112,10 +106,6 @@ services:
       retries: 5
       start_period: 5s
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change
@@ -130,10 +120,6 @@ services:
       retries: 50
       start_period: 30s
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
 
   airflow-webserver:
     <<: *airflow-common
@@ -191,24 +177,20 @@ services:
         condition: service_completed_successfully
 
 #  OPTIONAL
-#  airflow-triggerer:
-#    <<: *airflow-common
-#    command: triggerer
-#    healthcheck:
-#      test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
-#      interval: 30s
-#      timeout: 10s
-#      retries: 5
-#      start_period: 30s
-#    restart: always
-#    depends_on:
-#      <<: *airflow-common-depends-on
-#      airflow-init:
-#        condition: service_completed_successfully
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '2.5'
+  airflow-triggerer:
+    <<: *airflow-common
+    command: triggerer
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
 
   airflow-init:
     <<: *airflow-common
@@ -276,41 +258,39 @@ services:
       - invest_data:/opt/airflow/data
 
 #  OPTIONAL
-#  airflow-cli:
-#    <<: *airflow-common
-#    profiles:
-#      - debug
-#    environment:
-#      <<: *airflow-common-env
-#      CONNECTION_CHECK_MAX_COUNT: "0"
-#    # Workaround for entrypoint issue. See: https://github.com/apache/airflow/issues/16252
-#    command:
-#      - bash
-#      - -c
-#      - airflow
+  airflow-cli:
+    <<: *airflow-common
+    profiles:
+      - debug
+    environment:
+      <<: *airflow-common-env
+      CONNECTION_CHECK_MAX_COUNT: "0"
+    # Workaround for entrypoint issue. See: https://github.com/apache/airflow/issues/16252
+    command:
+      - bash
+      - -c
+      - airflow
 
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
   # See: https://docs.docker.com/compose/profiles/
 #  OPTIONAL
-#  flower:
-#    <<: *airflow-common
-#    command: celery flower
-#    profiles:
-#      - flower
-#    ports:
-#      - "5555:5555"
-#    healthcheck:
-#      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 5
-#      start_period: 30s
-#    restart: always
-#    depends_on:
-#      <<: *airflow-common-depends-on
-#      airflow-init:
-#        condition: service_completed_successfully
+  flower:
+    <<: *airflow-common
+    command: celery flower
+    ports:
+      - "5555:5555"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
 
   postgres-db:
     image: postgres:16
@@ -329,10 +309,6 @@ services:
     restart: always
     extra_hosts:
         - "host.docker.internal:host-gateway"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
 
   clickhouse-server:
     image: clickhouse/clickhouse-server:24.3.6
@@ -350,10 +326,6 @@ services:
 #      interval: 10s
 #      retries: 5
 #      start_period: 5s
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
 
   selenium-firefox:
     image: selenium/standalone-firefox:latest
@@ -372,10 +344,6 @@ services:
     ports:
       - "4444:4444"
     user: "${AIRFLOW_UID:-50000}:0"
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
 
 networks:
   selenium-network:
