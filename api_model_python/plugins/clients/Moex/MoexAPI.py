@@ -65,7 +65,7 @@ class SecuritiesTrading(Request):
 
 
 @dataclass
-class Securities(Request):
+class SecuritiesList(Request):
     """
     Securities
     """
@@ -82,9 +82,9 @@ class Prices(Shares):
     engine: str = "stock"
     market: str = "shares"
     board: str = ""
-    # date: str = '2024-12-27'
     date: str = yesterday_str
     table_name: str = "api_moex_prices"
+
 
 @dataclass
 class SettlementsCalendar(Request):
@@ -93,3 +93,15 @@ class SettlementsCalendar(Request):
     """
     url: str = 'https://iss.moex.com//iss/rms/engines/stock/objects/settlementscalendar'
     table_name: str = "api_moex_settlements_calendar"
+
+
+@dataclass
+class SecuritiesInfo(Shares):
+    """
+    https://iss.moex.com/iss/reference/347
+    """
+
+    url: str = 'http://iss.moex.com/iss/engines/%(engine)s/markets/%(market)s/securities.json?securities=%(securities)s'
+    engine: str = "stock"
+    market: str = "shares"
+    table_name: str = "api_moex_securities_info"

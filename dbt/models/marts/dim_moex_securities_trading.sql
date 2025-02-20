@@ -4,7 +4,7 @@
     incremental_strategy='merge',
     unique_key=['secid', 'boardid'],
     merge_update_columns=['id', 'shortname', 'regnumber', 'name', 'isin', 'is_traded', 'id_emitent', 'inn',
-    'type', 'grp']
+    'type', 'grp', 'issuesize']
   )
 }}
 WITH securities AS (
@@ -48,6 +48,17 @@ WITH securities AS (
         )
     WHERE rn = 1
 )
+, securities_info AS (
+    SELECT * FROM (
+        SELECT
+            secid,
+            boardid,
+            issuesize,
+            row_number() OVER(PARTITION BY secid, boardid ORDER BY settledate DESC) AS rn
+        FROM {{ ref('dim_moex_securities_info') }}
+        )
+    WHERE rn = 1
+)
 SELECT DISTINCT
     cast(securities.id AS BIGINT) AS id,
     coalesce(securities.secid, prices.secid, '') AS secid,
@@ -60,7 +71,9 @@ SELECT DISTINCT
     coalesce(d.inn, securities.emitent_id, '') AS inn,
     securities.type,
     securities.grp AS grp,
-    coalesce(securities.boardid, prices.boardid, '') AS boardid
+    coalesce(securities.boardid, prices.boardid, '') AS boardid,
+    securities_info.issuesize AS issuesize
 FROM securities
 FULL JOIN prices ON securities.secid = prices.secid AND securities.boardid = prices.boardid
 LEFT JOIN emitents AS d ON d.inn = securities.emitent_inn
+LEFT JOIN securities_info ON securities.secid = securities_info.secid AND securities.boardid = securities_info.boardid

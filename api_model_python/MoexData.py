@@ -6,16 +6,18 @@ from airflow.exceptions import AirflowSkipException
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text as sa_text
+from time import sleep
 
-from api_model_python.plugins.clients.Moex.MoexAPI import Request, Prices, Boards, SecuritiesTrading
+from api_model_python.plugins.clients.Moex.MoexAPI import Request, Prices, Boards, SecuritiesTrading, SecuritiesInfo
 from api_model_python.plugins.clients.Moex.iss_client import (
     Config,
     MicexAuth,
     MicexISSClientPrices,
     MicexISSClientBoards,
-    MicexISSClientSecurities)
+    MicexISSClientSecuritiesTrading,
+    MicexISSClientSecuritiesInfo)
+from api_model_python.plugins.divide_chunks import divide_chunks
 from api_model_python.plugins.path import get_project_root, Path
-
 from api_model_python.exceptions.MoexAuthenticationError import MoexAuthenticationError
 from logs.Logger import Logger
 
@@ -71,9 +73,11 @@ class MoexData:
         df.columns = df.columns.str.lower()
         self.engine.execute(
             sa_text(f'''TRUNCATE TABLE {method.table_name}''').execution_options(autocommit=True))
-        df.to_sql(name=method.table_name, con=self.engine, if_exists='append', index=False)
+        df.to_sql(name=method.table_name,
+                  con=self.engine,
+                  if_exists='append',
+                  index=False)
         logger.info(f"{method.table_name} downloaded successfully")
-
 
     def get_boards(self):
         iss = MicexISSClientBoards(self.my_config, self.my_auth)
@@ -81,7 +85,7 @@ class MoexData:
         self.finish_get_data(df, Boards)
 
     def get_securities_trading(self):
-        iss = MicexISSClientSecurities(self.my_config, self.my_auth)
+        iss = MicexISSClientSecuritiesTrading(self.my_config, self.my_auth)
         df: pd.DataFrame = iss.get_data()
         self.finish_get_data(df, SecuritiesTrading)
 
@@ -103,3 +107,31 @@ class MoexData:
             df: pd.DataFrame = iss.get_data(boardid)
             moex_prices_df = pd.concat([moex_prices_df, df], axis=0)
         self.finish_get_data(moex_prices_df, Prices)
+
+    def get_securities_info(self):
+        securities = (
+            pd.read_sql(
+                """
+                SELECT DISTINCT UPPER(secid) AS secid
+                FROM public_marts.dim_moex_securities
+                WHERE boardid in (
+                    'EQBR', 'EQBS', 'EQDE', 'EQDP', 'EQLI', 'EQLV', 'EQNE', 'EQNL', 'EQTD', 'MPBB', 'MTQR', 'SMAL', 
+                    'SPEQ', 'TQBR', 'TQBS', 'TQDE', 'TQDP', 'TQFD', 'TQFE', 'TQIF', 'TQLV', 'TQNE', 'TQNL', 'TQPI', 
+                    'TQTD', 'TQTE', 'TQTF', 'TQTY') AND 
+                    (secid != '' OR secid IS NOT NULL)
+                ORDER BY secid
+                """
+                , self.engine
+            )['secid']
+            .to_list()
+        )
+        iss = MicexISSClientSecuritiesInfo(self.my_config, self.my_auth)
+        securities_info: pd.DataFrame = pd.DataFrame()
+        for security_chunk in divide_chunks(securities, 10):
+            df: pd.DataFrame = iss.get_data(security_chunk)
+            if df.empty:
+                logger.exception(f"Empty DataFrame for securities {security_chunk}")
+            else:
+                securities_info = pd.concat([securities_info, df], axis=0)
+            sleep(1)
+        self.finish_get_data(securities_info, SecuritiesInfo)

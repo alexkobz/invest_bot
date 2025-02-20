@@ -30,6 +30,10 @@ models:
     config:
       materialized: table
       tags: [ 'sql' ]
+  - name: hst_moex_securities_info
+    config:
+      materialized: table
+      tags: [ 'sql' ]
   - name: hst_girbo_fundamentals
     config:
       materialized: table
