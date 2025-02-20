@@ -1,3 +1,4 @@
+-- TODO replace view add issuesize
 CREATE MATERIALIZED VIEW mv_moex_prices
 TO rep_moex_prices AS
 SELECT

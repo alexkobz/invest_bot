@@ -77,6 +77,40 @@ models:
     constraints:
       - type: primary_key
         columns: ['secid', 'boardid']
+  - name: dim_moex_securitites_info
+    description: "Dimension table of securities on MOEX"
+    columns:
+      - name: secid
+      - name: boardid
+      - name: shortname
+      - name: prevprice
+      - name: lotsize
+      - name: facevalue
+      - name: status
+      - name: boardname
+      - name: decimals
+      - name: secname
+      - name: remarks
+      - name: marketcode
+      - name: instrid
+      - name: sectorid
+      - name: minstep
+      - name: prevwaprice
+      - name: faceunit
+      - name: prevdate
+      - name: issuesize
+        description: "Number of stocks"
+      - name: isin
+      - name: latname
+      - name: regnumber
+      - name: prevlegalcloseprice
+      - name: currencyid
+      - name: sectype
+      - name: listlevel
+      - name: settledate
+    constraints:
+      - type: primary_key
+        columns: ['secid', 'boardid', 'settledate']
     config:
       materialized: table
       tags: [ 'sql' ]

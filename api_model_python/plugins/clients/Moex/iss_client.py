@@ -13,15 +13,19 @@ import urllib.parse
 import base64
 import http.cookiejar
 import json
+from typing import List
+
 import pandas as pd
 import xmltodict
-from typing import override
+from typing_extensions import override
+from urllib3 import HTTPResponse
 
 from api_model_python.plugins.clients.Moex.MoexAPI import (
     Request,
     Prices,
     SecuritiesTrading,
-    Boards)
+    Boards,
+    SecuritiesInfo)
 
 
 class Config:
@@ -110,7 +114,7 @@ class MicexISSClient:
             )
         urllib.request.install_opener(self.opener)
 
-    def get_data(self) -> pd.DataFrame:
+    def get_data(self, *args) -> pd.DataFrame:
         pass
 
     def data(self, method: Request) -> pd.DataFrame:
@@ -130,7 +134,7 @@ class MicexISSClientBoards(MicexISSClient):
         return result
 
 
-class MicexISSClientSecurities(MicexISSClient):
+class MicexISSClientSecuritiesTrading(MicexISSClient):
 
     @override
     def get_data(self) -> pd.DataFrame:
@@ -179,6 +183,24 @@ class MicexISSClientPrices(MicexISSClient):
             chunk = pd.DataFrame(data=jdata, columns=jcols)
             result = pd.concat([result, chunk], axis=0)
             start += len(jdata)
+        return result
+
+
+class MicexISSClientSecuritiesInfo(MicexISSClient):
+
+    @override
+    def get_data(self, security_chunk: List[str]) -> pd.DataFrame:
+        """Get and parse data of security."""
+        url = SecuritiesInfo.url % {
+            'engine': SecuritiesInfo.engine,
+            'market': SecuritiesInfo.market,
+            'securities': ','.join(security_chunk)
+        }
+        response: HTTPResponse = self.opener.open(url)
+        result: str = response.read().decode('utf-8')
+        security_result = json.loads(result)['securities']
+        result: pd.DataFrame = pd.DataFrame(data=security_result['data'],
+                                            columns=security_result['columns'])
         return result
 
 

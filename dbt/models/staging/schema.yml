@@ -32,6 +32,9 @@ models:
       - name: load_ts
     config:
       materialized: view
+  - name: stg_moex_securities_info
+    config:
+      materialized: view
   - name: stg_moex_prices
     columns:
       - name: boardid
@@ -81,6 +84,7 @@ sources:
     tables:
       - name: api_moex_boards
       - name: api_moex_securities_trading
+      - name: api_moex_securities_info
       - name: api_moex_prices
   - name: rudata
     database: invest
