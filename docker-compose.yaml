@@ -176,7 +176,7 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-#  OPTIONAL
+  # OPTIONAL
   airflow-triggerer:
     <<: *airflow-common
     command: triggerer
@@ -257,7 +257,7 @@ services:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
       - invest_data:/opt/airflow/data
 
-#  OPTIONAL
+  # OPTIONAL
   airflow-cli:
     <<: *airflow-common
     profiles:
@@ -271,10 +271,10 @@ services:
       - -c
       - airflow
 
+  # OPTIONAL
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
   # See: https://docs.docker.com/compose/profiles/
-#  OPTIONAL
   flower:
     <<: *airflow-common
     command: celery flower
@@ -326,6 +326,15 @@ services:
 #      interval: 10s
 #      retries: 5
 #      start_period: 5s
+
+  # OPTIONAL
+  ch-ui:
+    image: ghcr.io/caioricciuti/ch-ui:latest
+    restart: always
+    ports:
+      - "5521:5521"
+    env_file:
+      - .env
 
   selenium-firefox:
     image: selenium/standalone-firefox:latest
