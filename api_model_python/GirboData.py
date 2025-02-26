@@ -67,7 +67,7 @@ class GirboData:
             pd.read_sql(
                 """
                 SELECT DISTINCT inn
-                FROM public_marts.dim_emitents
+                FROM public_marts.dim_moex_securities
                 WHERE inn NOT IN (
                     SELECT inn FROM public_marts.dim_girbo_organizations_cards
                 )
@@ -150,16 +150,12 @@ class GirboData:
         }
 
         os.chdir(GirboData._download_dir)
-        for filename in os.listdir('.'):
-            file_path = os.path.join('.', filename)
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
         cards: List[str] = (
             pd.read_sql(
                 """
                 SELECT DISTINCT card
                 FROM public_marts.dim_girbo_organizations_cards
-                WHERE card IS NOT NULL AND card != '' AND is_loaded IS false
+                WHERE coalesce(card, '') != ''
                 """
                 , self.engine
             )['card']
@@ -185,14 +181,6 @@ class GirboData:
                     __click_button(button_xpath['targeted_funds_using_checkbox'])
                     __click_button(button_xpath['download_button'])
             driver.quit()
-            self.engine.execute(
-                sa_text(
-                    f"""
-                    UPDATE public_marts.dim_girbo_organizations_cards
-                    SET is_loaded = true
-                    WHERE card = '{card}'
-                    """
-                ).execution_options(autocommit=True))
             logger.info(f"{card} success")
             sleep(1)
 
@@ -252,9 +240,12 @@ class GirboData:
                 res = defaultdict(list)
                 for code, column in matrix:
                     try:
-                        row = df[df == code].any(axis=1)
-                        row = row.index[row][0]
-                        col = df[df == column].any(axis=0)
+                        find_code = df[df == code]
+                        find_code_row = find_code.any(axis=1)
+                        row = find_code_row.index[find_code_row][0]
+                        find_code_column = find_code.any(axis=0)
+                        tmp_column = find_code_column.index[find_code_column][0]
+                        col = df.loc[:, tmp_column:][df.loc[:, tmp_column:] == column].any(axis=0)
                         col = col.index[col][0]
                         res[code].append(df.loc[row, col])
                     except:

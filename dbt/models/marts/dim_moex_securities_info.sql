@@ -29,7 +29,7 @@ SELECT
     prevwaprice::float,
     faceunit,
     prevdate,
-    last_value(issuesize::float::bigint) OVER(partition by secid, boardid order by settledate::date) as issuesize,
+    issuesize::float::bigint as issuesize,
     isin,
     latname,
     regnumber,
