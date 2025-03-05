@@ -234,7 +234,6 @@ class GirboData:
             cash_flow_columns,
             ['3', '4'])).T.reshape(-1, 2)
 
-        @staticmethod
         def _parse_sheet(df: pd.DataFrame, matrix) -> pd.DataFrame:
             try:
                 res = defaultdict(list)
