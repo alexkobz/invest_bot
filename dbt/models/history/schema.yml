@@ -26,6 +26,7 @@ models:
       - name: tradingsession
       - name: currencyid
       - name: trendclspr
+      - name: trade_session_date
       - name: load_ts
     config:
       materialized: table
