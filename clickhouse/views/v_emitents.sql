@@ -12,6 +12,6 @@ FROM (
         sector,
         country,
         row_number() OVER(PARTITION BY inn ORDER BY id_emitent DESC) AS rn
-    FROM pg_emitents
+    FROM emitents
     )
 WHERE rn = 1
