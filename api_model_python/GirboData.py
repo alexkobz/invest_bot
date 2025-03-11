@@ -68,9 +68,6 @@ class GirboData:
                 """
                 SELECT DISTINCT inn
                 FROM public_marts.dim_moex_securities
-                WHERE inn NOT IN (
-                    SELECT inn FROM public_marts.dim_girbo_organizations_cards
-                )
                 """
                 , self.engine
             )['inn']
@@ -84,7 +81,7 @@ class GirboData:
             driver = webdriver.Remote(
                 command_executor="http://host.docker.internal:4444/wd/hub",
                 options=self.options)
-            url = f"https://bo.nalog.ru/search?query={inn}"
+            url = f"https://bo.nalog.ru/search?allFieldsMatch=false&inn={inn}"
             request(url)
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             link = soup.find("a", class_="results-search-table-row")
