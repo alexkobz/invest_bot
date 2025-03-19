@@ -30,6 +30,7 @@ SELECT
     faceunit,
     prevdate,
     issuesize::float::bigint as issuesize,
+    issuesize::float::bigint as imputed_issuesize,
     isin,
     latname,
     regnumber,
