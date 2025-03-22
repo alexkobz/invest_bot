@@ -1,5 +1,20 @@
 CREATE MATERIALIZED VIEW mv_fundamentals
 TO rep_fundamentals AS
+--WITH AS (
+--    SELECT
+--        f.inn,
+--        f."year",
+--        argMax(sec.secid, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as secid,
+--        argMax(sec.boardid, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as boardid,
+--        argMax(sec.sectype, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as sectype,
+--        argMax(sec.secgroup, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as secgroup,
+--        argMax(sec.issuesize, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as issuesize
+--    FROM v_fundamentals AS f
+--    ASOF LEFT JOIN v_moex_securities AS sec
+--        ON sec.inn = f.inn
+--        AND year(sec.settledate) >= f."year"
+--    SETTINGS join_use_nulls = 1
+--)
 SELECT
     f.*,
     (f."1200" - f."1500")/nullif(f."1200", 0) AS wca,
@@ -23,17 +38,17 @@ SELECT
     (f."1400")/nullif(f."1300", 0) AS de,
     (f."1400")/nullif(f."1600", 0) AS da,
     (f."2300" + f."2330")/nullif(f."2330", 0) AS icr,
-    (f."2400")/nullif(sec.issuesize, 0) AS eps,
-    sec.secid,
-    sec.boardid,
-    sec.sectype AS sectype,
-    sec.secgroup AS secgroup,
-    sec.issuesize AS issuesize,
+    (f."2400")/nullif(argMax(sec.issuesize, f."year") OVER (PARTITION BY f.inn ORDER BY f."year"), 0) AS eps,
+    argMax(sec.secid, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as secid,
+    argMax(sec.boardid, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as boardid,
+    argMax(sec.sectype, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as sectype,
+    argMax(sec.secgroup, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as secgroup,
+    argMax(sec.issuesize, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as issuesize,
     e.sector,
     e.country
 FROM v_fundamentals AS f
 LEFT JOIN v_emitents AS e ON e.inn = f.inn
-LEFT JOIN v_moex_securities AS sec
+ASOF LEFT JOIN v_moex_securities AS sec
     ON sec.inn = f.inn
-    AND sec."year" = f."year"
+    AND year(sec.settledate) >= f."year"
 SETTINGS join_use_nulls = 1

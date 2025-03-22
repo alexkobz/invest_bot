@@ -45,7 +45,7 @@ WITH generated_dates AS (
         ON d.secid = p.secid
         AND d.boardid = p.boardid
         AND d.tradedate = p.tradedate
-     ASOF LEFT JOIN v_moex_securities AS sec
+    ASOF LEFT JOIN v_moex_securities AS sec
         ON sec.secid = d.secid
         AND sec.boardid = d.boardid
         AND sec.settledate < d.tradedate
