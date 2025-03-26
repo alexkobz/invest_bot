@@ -17,6 +17,7 @@ WITH generated_dates AS (
         d.boardid AS boardid,
         d.tradedate AS tradedate,
         year(d.tradedate) AS "year",
+        p.tradedate IS NOT NULL AS is_workday,
         argMax(sec.issuesize, d.tradedate) OVER (PARTITION BY d.secid, d.boardid ORDER BY d.tradedate) AS issuesize,
         argMax(sec.shortname, d.tradedate) OVER (PARTITION BY d.secid, d.boardid ORDER BY d.tradedate) AS shortname,
         argMax(sec.name, d.tradedate) OVER (PARTITION BY d.secid, d.boardid ORDER BY d.tradedate) AS name,
@@ -48,7 +49,7 @@ WITH generated_dates AS (
     ASOF LEFT JOIN v_moex_securities AS sec
         ON sec.secid = d.secid
         AND sec.boardid = d.boardid
-        AND sec.settledate < d.tradedate
+        AND sec.settledate <= d.tradedate
     LEFT JOIN moex_boards AS b
         ON b.boardid = p.boardid
     LEFT JOIN v_fundamentals AS f
@@ -62,6 +63,7 @@ SELECT
     boardid,
     tradedate,
     "year",
+    is_workday,
     shortname,
     name,
     isin,
