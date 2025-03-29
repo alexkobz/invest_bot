@@ -1,20 +1,5 @@
 CREATE MATERIALIZED VIEW mv_fundamentals
 TO rep_fundamentals AS
---WITH AS (
---    SELECT
---        f.inn,
---        f."year",
---        argMax(sec.secid, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as secid,
---        argMax(sec.boardid, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as boardid,
---        argMax(sec.sectype, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as sectype,
---        argMax(sec.secgroup, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as secgroup,
---        argMax(sec.issuesize, f."year") OVER (PARTITION BY f.inn ORDER BY f."year") as issuesize
---    FROM v_fundamentals AS f
---    ASOF LEFT JOIN v_moex_securities AS sec
---        ON sec.inn = f.inn
---        AND year(sec.settledate) >= f."year"
---    SETTINGS join_use_nulls = 1
---)
 SELECT
     f.*,
     (f."1200" - f."1500")/nullif(f."1200", 0) AS wca,
