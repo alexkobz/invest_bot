@@ -48,6 +48,9 @@ WITH generated_dates AS (
         argMax(f."2110", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "2110",
         argMax(f."1300", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "1300",
         argMax(f."2200", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "2200",
+        argMax(f."2330", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "2330",
+        argMax(f."2340", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "2340",
+        argMax(f."2350", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "2350",
         argMax(f."1510", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "1510",
         argMax(f."1250", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "1250",
         argMax(f."2330", d.tradedate) OVER (PARTITION BY d.secid ORDER BY d.tradedate) AS "2330",
@@ -69,7 +72,6 @@ WITH generated_dates AS (
 )
 SELECT
     secid,
-    boardid,
     tradedate,
     "year",
     is_workday,
@@ -85,16 +87,16 @@ SELECT
     high,
     "close",
     volume,
+    boardid,
     board_title,
     is_board_traded,
     issuesize,
     "close"*issuesize AS capitalization,
-    "2200" AS ebit,
-    "2200" + "2330" AS ebitda,
     ("close"*issuesize)/nullIf("2400", 0) AS p_e,
     ("close"*issuesize)/nullIf("2110", 0) AS p_s,
     ("close"*issuesize)/nullIf("1300", 0) AS p_b,
-    ("close"*issuesize)/nullIf("2200", 0) AS p_ebit,
-    ("close"*issuesize + "1510" - "1250")/nullIf(("2200" + "2330"), 0) AS ev_ebitda,
+    ("close"*issuesize)/nullIf("2200" + "2340" - "2350", 0) AS p_ebit,
+    ("close"*issuesize)/nullIf("2200" + "2330" + "2340" - "2350", 0) AS p_ebitda,
+    ("close"*issuesize + "1510" - "1250")/nullIf("2200" + "2330" + "2340" - "2350", 0) AS ev_ebitda,
     ("3227")/nullif(issuesize, 0)/"close" AS dy
 FROM prices
