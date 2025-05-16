@@ -321,11 +321,6 @@ services:
       - ./clickhouse/processed_configs/users.xml:/etc/clickhouse-server/users.xml
       - clickhouse-volume:/var/lib/clickhouse
     restart: always
-#    healthcheck:
-#      test: [ "CMD", "curl", "-f", "http://localhost:8123/ping" ]
-#      interval: 10s
-#      retries: 5
-#      start_period: 5s
 
   # OPTIONAL
   ch-ui:

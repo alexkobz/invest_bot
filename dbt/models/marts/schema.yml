@@ -154,3 +154,48 @@ models:
     config:
       materialized: table
       tags: [ 'sql' ]
+  - name: fct_ratios
+    description: "Table of ratios from https://financemarker.ru/"
+    columns:
+      - name: active
+      - name: capex_revenue
+      - name: capital
+      - name: changed_at
+      - name: code
+      - name: current_ratio
+      - name: debt_equity
+      - name: debt_ratio
+      - name: debtebitda
+      - name: dpr
+      - name: ebitda_margin
+      - name: ev_ebit
+      - name: evebitda
+      - name: evs
+      - name: exchange
+      - name: gross_margin
+      - name: interest_coverage
+      - name: month
+      - name: net_margin
+      - name: net_working_capital
+      - name: netdebt_ebitda
+      - name: operation_margin
+      - name: pbv
+      - name: pcf
+      - name: pe
+      - name: period
+      - name: pfcf
+      - name: pffo
+      - name: ps
+      - name: roa
+      - name: roce
+      - name: roe
+      - name: roic
+      - name: ros
+      - name: type
+      - name: year
+    constraints:
+      - type: primary_key
+        columns: ['exchange', 'code', 'type', 'period', 'year', 'month']
+    config:
+      materialized: table
+      tags: [ 'sql' ]

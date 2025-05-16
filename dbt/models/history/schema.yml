@@ -39,3 +39,7 @@ models:
     config:
       materialized: table
       tags: [ 'sql' ]
+  - name: hst_ratios
+    config:
+      materialized: table
+      tags: [ 'sql' ]

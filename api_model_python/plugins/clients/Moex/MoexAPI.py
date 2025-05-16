@@ -91,7 +91,7 @@ class SettlementsCalendar(Request):
     """
     Settlements calendar
     """
-    url: str = 'https://iss.moex.com//iss/rms/engines/stock/objects/settlementscalendar'
+    url: str = 'https://iss.moex.com/iss/rms/engines/stock/objects/settlementscalendar'
     table_name: str = "api_moex_settlements_calendar"
 
 
