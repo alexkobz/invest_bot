@@ -29,7 +29,8 @@ SELECT
 	prices.admittedvalue,
 	prices.waval,
 	prices.tradingsession,
-	prices.trendclspr
+	prices.trendclspr,
+	prices.trade_session_date::date AS trade_session_date
 FROM {{ ref('stg_moex_prices') }} AS prices
 JOIN {{ ref('dim_moex_securities') }} AS sec ON prices.secid = sec.secid AND prices.boardid = sec.boardid
 WHERE prices.volume > 0

@@ -4,7 +4,7 @@
     incremental_strategy='merge',
     unique_key=['secid', 'boardid'],
     merge_update_columns=['id', 'shortname', 'regnumber', 'name', 'isin', 'is_traded', 'id_emitent', 'inn',
-    'type', 'grp', 'issuesize']
+    'type', 'grp']
   )
 }}
 SELECT DISTINCT
@@ -19,6 +19,5 @@ SELECT DISTINCT
     d.inn,
     d.type,
     d.grp,
-    d.boardid,
-    d.issuesize
+    d.boardid
 FROM {{ ref('dim_moex_securities_trading') }} AS d

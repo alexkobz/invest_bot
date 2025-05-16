@@ -77,6 +77,9 @@ models:
   - name: stg_girbo_fundamentals
     config:
       materialized: view
+  - name: stg_ratios
+    config:
+      materialized: view
 
 sources:
   - name: moex
@@ -98,3 +101,8 @@ sources:
     tables:
       - name: api_girbo_organizations_cards
       - name: api_girbo_fundamentals
+  - name: finance_marker
+    database: invest
+    schema: finance_marker
+    tables:
+      - name: ratios
