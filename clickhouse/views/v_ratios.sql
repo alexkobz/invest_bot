@@ -1,5 +1,19 @@
 CREATE VIEW v_ratios AS
-WITH sec AS (
+with ratios_year AS (
+	SELECT *
+	FROM ratios
+	WHERE period = 'Y'
+)
+, generated_years AS (
+    SELECT
+        code,
+        type,
+        arrayJoin(range(min_year, toYear(current_date()) + 1)) AS year
+    FROM (
+        SELECT code, type, MIN(year) AS min_year FROM ratios_year GROUP BY code, type
+    )
+)
+, sec AS (
 	SELECT secid, inn
 	FROM (
 		SELECT secid, inn,
@@ -8,44 +22,44 @@ WITH sec AS (
 	)
 	WHERE rn = 1
 )
-select
-	r.active,
-    r.capex_revenue,
-    r.capital,
-    r.changed_at,
-    r.code,
-    r.current_ratio,
-    r.debt_equity,
-    r.debt_ratio,
-    r.debtebitda,
-    r.dpr,
-    r.ebitda_margin,
-    r.ev_ebit,
-    r.evebitda,
-    r.evs,
-    r.exchange,
-    r.gross_margin,
-    r.interest_coverage,
-    r."month",
-    r.net_margin,
-    r.net_working_capital,
-    r.netdebt_ebitda,
-    r.operation_margin,
-    r.pbv,
-    r.pcf,
-    r.pe,
-    r.period,
-    r.pfcf,
-    r.pffo,
-    r.ps,
-    r.roa,
-    r.roce,
-    r.roe,
-    r.roic,
-    r.ros,
-    r.type,
-    r."year",
-	sec.inn,
+SELECT
+    g.code AS code,
+    g."year" AS "year",
+    g.type AS type,
+    argMax(r.active, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS active,
+    argMax(r.capex_revenue, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS capex_revenue,
+    argMax(r.capital, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS capital,
+    argMax(r.changed_at, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS changed_at,
+    argMax(r.current_ratio, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS current_ratio,
+    argMax(r.debt_equity, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS debt_equity,
+    argMax(r.debt_ratio, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS debt_ratio,
+    argMax(r.debtebitda, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS debtebitda,
+    argMax(r.dpr, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS dpr,
+    argMax(r.ebitda_margin, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS ebitda_margin,
+    argMax(r.ev_ebit, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS ev_ebit,
+    argMax(r.evebitda, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS evebitda,
+    argMax(r.evs, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS evs,
+    argMax(r.exchange, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS exchange,
+    argMax(r.gross_margin, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS gross_margin,
+    argMax(r.interest_coverage, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS interest_coverage,
+    argMax(r."month", g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS "month",
+    argMax(r.net_margin, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS net_margin,
+    argMax(r.net_working_capital, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS net_working_capital,
+    argMax(r.netdebt_ebitda, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS netdebt_ebitda,
+    argMax(r.operation_margin, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS operation_margin,
+    argMax(r.pbv, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS pbv,
+    argMax(r.pcf, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS pcf,
+    argMax(r.pe, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS pe,
+    argMax(r.period, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS period,
+    argMax(r.pfcf, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS pfcf,
+    argMax(r.pffo, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS pffo,
+    argMax(r.ps, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS ps,
+    argMax(r.roa, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS roa,
+    argMax(r.roce, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS roce,
+    argMax(r.roe, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS roe,
+    argMax(r.roic, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS roic,
+    argMax(r.ros, g."year") OVER (PARTITION BY g.code, g.type ORDER BY g."year") AS ros,
+    sec.inn AS inn,
 	f."1100",
 	f."1110",
 	f."1120",
@@ -223,6 +237,9 @@ select
 	f."3225",
 	f."3412",
 	f."3422"
-FROM ratios AS r
-JOIN sec ON sec.secid = r.code
-JOIN fundamentals f ON f.inn = sec.inn AND r."year" = f."year"
+FROM generated_years AS g
+LEFT JOIN ratios_year AS r
+    ON g.code = r.code AND g.type = r.type AND g.year = r.year
+LEFT JOIN sec ON sec.secid = g.code
+LEFT JOIN v_fundamentals f ON f.inn = sec.inn AND g."year" = f."year"
+SETTINGS join_use_nulls = 1
