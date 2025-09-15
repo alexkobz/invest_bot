@@ -3,7 +3,7 @@ version: '1.0.0'
 
 profile: 'invest_bot'
 
-model-paths: ["models"]
+model-paths: []
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
 seed-paths: ["seeds"]
@@ -14,15 +14,14 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-models:
-  invest_bot:
-    staging:
-      +schema: staging
-      +materialized: view
-    history:
-      +schema: history
-      +materialized: table
-    marts:
-      +schema: marts
-      +materialized: table
-  +incremental_strategy: "insert_overwrite"
+#models:
+#  invest_bot:
+#    staging:
+#      +schema: staging
+#      +materialized: view
+##    history:
+##      +schema: history
+##      +materialized: table
+#    core:
+#      +schema: core
+#      +materialized: table

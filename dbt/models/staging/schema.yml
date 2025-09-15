@@ -11,28 +11,7 @@ models:
       - name: load_ts
     config:
       materialized: view
-  - name: stg_moex_securities_trading
-    columns:
-      - name: id
-      - name: secid
-      - name: shortname
-      - name: regnumber
-      - name: name
-      - name: isin
-      - name: is_traded
-      - name: emitent_id
-      - name: emitent_title
-      - name: emitent_inn
-      - name: emitent_okpo
-      - name: gosreg
-      - name: type
-      - name: group
-      - name: primary_boardid
-      - name: marketprice_boardid
-      - name: load_ts
-    config:
-      materialized: view
-  - name: stg_moex_securities_info
+  - name: stg_moex_shares
     config:
       materialized: view
   - name: stg_moex_prices
@@ -67,19 +46,6 @@ models:
   - name: stg_rudata_emitents
     config:
       materialized: view
-  - name: stg_girbo_organizations_cards
-    columns:
-      - name: inn
-      - name: card
-      - name: load_ts
-    config:
-      materialized: view
-  - name: stg_girbo_fundamentals
-    config:
-      materialized: view
-  - name: stg_ratios
-    config:
-      materialized: view
 
 sources:
   - name: moex
@@ -87,8 +53,7 @@ sources:
     schema: public
     tables:
       - name: api_moex_boards
-      - name: api_moex_securities_trading
-      - name: api_moex_securities_info
+      - name: api_moex_shares
       - name: api_moex_prices
   - name: rudata
     database: invest
@@ -99,10 +64,4 @@ sources:
     database: invest
     schema: public
     tables:
-      - name: api_girbo_organizations_cards
       - name: api_girbo_fundamentals
-  - name: finance_marker
-    database: invest
-    schema: finance_marker
-    tables:
-      - name: ratios
