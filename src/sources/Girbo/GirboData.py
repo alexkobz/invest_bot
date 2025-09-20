@@ -256,7 +256,7 @@ class GirboData:
             sa_text(f'''TRUNCATE TABLE {table_name}''').execution_options(autocommit=True))
 
         os.chdir(GirboData._download_dir)
-        for filename in os.listdir('../api_model_python'):
+        for filename in os.listdir('../../../api_model_python'):
             if filename.endswith('.zip'):
                 filename_list = filename.split('_')
                 inn = filename_list[-3]

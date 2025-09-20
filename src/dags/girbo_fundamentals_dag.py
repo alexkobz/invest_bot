@@ -13,7 +13,7 @@ import os
 # Add the `scripts` directory to the Python path
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-from src.GirboData import GirboData
+from src.sources.Girbo.GirboData import GirboData
 from src.utils.ReplicationClickHouseOperator import ReplicationClickHouseOperator
 
 

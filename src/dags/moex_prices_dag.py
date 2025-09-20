@@ -14,7 +14,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 from api_model_python import MoexData
-from src.emitents import get_emitents
+from src.sources.RuData.emitents import get_emitents
 from src.utils.ReplicationClickHouseOperator import ReplicationClickHouseOperator
 
 with DAG(
