@@ -1,3 +1,7 @@
+"""
+https://iss.moex.com/iss/reference/
+"""
+
 from __future__ import annotations
 import urllib.request
 import urllib.parse
@@ -8,31 +12,20 @@ from typing import Optional, Dict, Any
 BASE = "https://iss.moex.com"
 
 
+@dataclass
 class Endpoint(ABC):
     """Абстрактный dataclass для MOEX ISS endpoints."""
-    @property
-    @abstractmethod
-    def path(self) -> str:
-        """Возвращает path шаблон (без base). Используйте {placeholders} для подстановки."""
-        raise NotImplementedError
-
+    path: str
 
     def url(self, base: str = BASE, params: Optional[Dict[str, Any]] = None) -> str:
         """Построить полный URL. Подставляет поля dataclass в path."""
-        path_template = self.path
-        # prepare mapping of all fields to str; skip None
-        mapping = {k: v for k, v in asdict(self).items() if v is not None}
-        # format path
-        try:
-            path = path_template.format(**mapping)
-        except KeyError as e:
-            # missing required field
-            raise ValueError(f"Missing path parameter: {e}") from e
-        full = base.rstrip("/") + "/" + path.lstrip("/")
+        full = base.rstrip("/") + "/" + self.path.lstrip("/")
         if params:
+            full = full.format(**params)
             query = urllib.parse.urlencode(params, doseq=True)
             full = f"{full}?{query}"
         return full
+
 
 @dataclass
 class Securities(Endpoint):
@@ -40,25 +33,21 @@ class Securities(Endpoint):
     https://iss.moex.com/iss/reference/205
     Список бумаг, торгуемых на Московской бирже.
     """
-    @property
-    def path(self) -> str:
-        return "iss/securities"
-            
+    path = "/iss/securities"
+
+
 @dataclass
 class SecuritiesDetail(Securities):
     """
     https://iss.moex.com/iss/reference/193
     Детальная информация по конкретной бумаге.
     """
+    path = "/iss/securities/{security}"
     security: str
-    @property
-    def path(self) -> str:
-        return "iss/securities/{security}"
+
 
 @dataclass
 class SecuritiesIndices(SecuritiesDetail):
-    """
-    """
     security: str
     @property
     def path(self) -> str:
@@ -66,8 +55,6 @@ class SecuritiesIndices(SecuritiesDetail):
 
 @dataclass
 class SecuritiesAggregates(SecuritiesDetail):
-    """
-    """
     security: str
     @property
     def path(self) -> str:
@@ -106,7 +93,7 @@ class Engine(Engines):
         return "iss/engines/{engine}"
 
 @dataclass
-class EngineStock(Engine):
+class Stock(Engine):
     engine: str = "stock"
 
 class EngineMarkets(Endpoint):
@@ -169,19 +156,19 @@ class StockSharesTurnovers(MarketTurnovers):
     market: str = 'shares'
 
 
-# class MarketZcyc(Endpoint):
-#     engine: str
-#     market: str
-#     @property
-#     def path(self) -> str:
-#         return "iss/engines/{engine}/markets/{market}/zcyc"
-#
-#
-# class EngineZcyc(Endpoint):
-#     engine: str
-#     @property
-#     def path(self) -> str:
-#         return "iss/engines/{engine}/zcyc"
+class MarketZcyc(Endpoint):
+    engine: str
+    market: str
+    @property
+    def path(self) -> str:
+        return "iss/engines/{engine}/markets/{market}/zcyc"
+
+
+class EngineZcyc(Endpoint):
+    engine: str
+    @property
+    def path(self) -> str:
+        return "iss/engines/{engine}/zcyc"
 
 # --- Orders / Orderbook / Trades / Securities at market level ---
 
@@ -218,8 +205,11 @@ class MarketSecurities(Endpoint):
 
 @dataclass
 class StockSharesSecurities(MarketSecurities):
-    engine: str = 'stock'
-    market: str = 'shares'
+    """
+    https://iss.moex.com/iss/reference/353
+    Получить таблицу инструментов по режиму торгов.
+    """
+    path = "/iss/engines/stock/markets/shares/securities"
 
 
 class MarketSecurity(Endpoint):
@@ -265,6 +255,12 @@ class MarketTrades(Endpoint):
         return "iss/engines/{engine}/markets/{market}/trades"
 
 
+@dataclass
+class StockSharesTrades(MarketTrades):
+    engine: str = 'stock'
+    market: str = 'shares'
+
+
 class MarketBoards(Endpoint):
     engine: str
     market: str
@@ -284,8 +280,11 @@ class Board(Endpoint):
 
 @dataclass
 class StockSharesBoards(Board):
-    engine: str = "stock"
-    market: str = "shares"
+    """
+    https://iss.moex.com/iss/reference/723
+    Получить справочник режимов торгов рынка.
+    """
+    path = "/iss/engines/stock/markets/shares/boards"
 
 
 class BoardSecurities(Endpoint):
@@ -382,6 +381,15 @@ class BoardTrades(Endpoint):
     @property
     def path(self) -> str:
         return "iss/engines/{engine}/markets/{market}/boards/{board}/trades"
+
+
+@dataclass
+class StockSharesTQBRTrades(BoardTrades):
+    """
+    https://iss.moex.com/iss/reference/325
+    Получить все сделки по выбранному режиму торгов.
+    """
+    path = "/iss/engines/stock/markets/shares/boards/tqbr/trades"
 
 
 class BoardOrderbook(Endpoint):
@@ -602,6 +610,15 @@ class HistorySecurities(Endpoint):
         return "iss/history/engines/{engine}/markets/{market}/securities"
 
 
+@dataclass
+class HistoryStockSharesSecurities(HistorySecurities):
+    """
+    https://iss.moex.com/iss/reference/467
+    Получить историю по всем бумагам на рынке за одну дату.
+    """
+    path = "/iss/history/engines/stock/markets/shares/securities"
+
+
 class HistoryYields(Endpoint):
     engine: str
     market: str
@@ -732,3 +749,11 @@ class HistoryOtcMarketsMonthly(Endpoint):
     @property
     def path(self) -> str:
         return "iss/history/otc/providers/nsd/markets/{market}/monthly"
+
+@dataclass
+class Companies(Endpoint):
+    """
+    https://iss.moex.com/iss/reference/881
+    Сервисы корпоративной информации. Справочная информация по организациям.
+    """
+    path = "/iss/cci/info/companies"

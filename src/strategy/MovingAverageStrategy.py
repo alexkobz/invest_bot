@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from strategy.Strategy import Strategy
+from src.strategy import Strategy
 
 
 class MovingAverageStrategy(Strategy):

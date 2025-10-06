@@ -29,7 +29,7 @@ class GirboData:
     _download_dir: str = '/opt/airflow/data/girbo_fundamentals'
 
     def __init__(self):
-        env_path: Path = Path.joinpath(get_project_root(), '.env')
+        env_path: Path = get_project_root()
         load_dotenv(env_path)
         DATABASE_URI: str = (
             f"postgresql://"

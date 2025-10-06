@@ -1,3 +1,3 @@
 SELECT
     *
-FROM {{ source('moex', 'api_moex_shares') }}
+FROM {{ source('moex', 'StockSharesSecurities') }}

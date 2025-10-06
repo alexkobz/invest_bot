@@ -1,3 +1,3 @@
 SELECT
     *
-FROM {{ source('girbo', 'api_girbo_fundamentals') }}
+FROM {{ source('girbo', 'fundamentals') }}

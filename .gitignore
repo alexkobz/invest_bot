@@ -1,5 +1,6 @@
 **/__pycache__/
 **/.ipynb_checkpoints/
+.dbt/
 .idea/
 .venv/
 .vscode/
@@ -14,7 +15,5 @@ src/clickhouse/processed_configs/users.xml
 *.pid
 *.out
 *.xlsx
-.dbt/profiles.yml
-.dbt/.user.yml
 dbt/profiles.yml
 dbt/.user.yml

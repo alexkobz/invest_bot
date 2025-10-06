@@ -9,28 +9,26 @@
   )
 }}
 SELECT
-	sec.boardid,
-	CAST(prices.tradedate AS DATE) AS tradedate,
-	sec.secid,
-	prices.numtrades,
-	prices.value,
-	prices.open,
-	prices.low,
-	prices.high,
-	CAST(prices.legalcloseprice AS DOUBLE PRECISION) AS legalcloseprice,
-	prices.waprice,
-	prices.close,
-	prices.volume,
-	prices.marketprice2,
-	prices.marketprice3,
-	prices.admittedquote,
-	prices.mp2valtrd,
-	prices.marketprice3tradesvalue,
-	prices.admittedvalue,
-	prices.waval,
-	prices.tradingsession,
-	prices.trendclspr,
-	prices.trade_session_date::date AS trade_session_date
-FROM {{ ref('stg_moex_prices') }} AS prices
-JOIN {{ ref("dim_moex_shares") }} AS sec ON prices.secid = sec.secid AND prices.boardid = sec.boardid
-WHERE prices.volume > 0
+	UPPER(secid) secid,
+	UPPER(boardid) boardid,
+	tradedate::date AS tradedate,
+	NULLIF(numtrades, '')::bigint numtrades,
+	NULLIF(value, '')::float "value",
+	NULLIF(open, '')::float "open",
+	NULLIF(close, '')::float "close",
+	NULLIF(low, '')::float low,
+	NULLIF(high, '')::float high,
+	NULLIF(legalcloseprice, '')::float AS legalcloseprice,
+	NULLIF(waprice, '')::float waprice,
+	NULLIF(volume, '')::bigint volume,
+	marketprice2,
+    marketprice3,
+	admittedquote,
+	NULLIF(mp2valtrd, '')::float mp2valtrd,
+	NULLIF(marketprice3tradesvalue, '')::float marketprice3tradesvalue,
+	admittedvalue,
+	NULLIF(waval, '')::float waval,
+	NULLIF(tradingsession, '')::bigint tradingsession,
+	NULLIF(trendclspr, '')::float trendclspr,
+	NULLIF(trade_session_date, '')::date AS trade_session_date
+FROM {{ ref('stg_moex_prices') }}

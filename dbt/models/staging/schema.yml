@@ -1,6 +1,9 @@
 version: 2
 
 models:
+  - name: stg_girbo_fundamentals
+    config:
+      materialized: view
   - name: stg_moex_boards
     columns:
       - name: id
@@ -8,7 +11,9 @@ models:
       - name: boardid
       - name: title
       - name: is_traded
-      - name: load_ts
+    config:
+      materialized: view
+  - name: stg_moex_companies
     config:
       materialized: view
   - name: stg_moex_shares
@@ -40,28 +45,36 @@ models:
       - name: currencyid
       - name: trendclspr
       - name: trade_session_date
-      - name: load_ts
     config:
       materialized: view
-  - name: stg_rudata_emitents
-    config:
-      materialized: view
+#  - name: stg_rudata_emitents
+#    config:
+#      materialized: view
 
 sources:
   - name: moex
     database: invest
-    schema: public
+    schema: moex
     tables:
-      - name: api_moex_boards
-      - name: api_moex_shares
-      - name: api_moex_prices
-  - name: rudata
-    database: invest
-    schema: public
-    tables:
-      - name: api_rudata_emitents
+      - name: Companies
+      - name: HistoryStockSharesSecurities
+      - name: StockSharesBoards
+      - name: StockSharesSecurities
+      - name: StockSharesSecuritiesMarketData
+#  - name: rudata
+#    database: invest
+#    schema: rudata
+#    tables:
+#      - name: api_rudata_emitents
   - name: girbo
     database: invest
-    schema: public
+    schema: girbo
     tables:
-      - name: api_girbo_fundamentals
+      - name: fundamentals
+  - name: tbank
+    database: invest
+    schema: tbank
+    tables:
+      - name: shares
+      - name: bonds
+      - name: etfs
