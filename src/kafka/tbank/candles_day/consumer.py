@@ -6,7 +6,7 @@ from src.kafka.tbank.config import SERVER
 
 
 consumer = KafkaConsumer(
-    Topic.CANDLES1MIN.value,
+    Topic.CANDLESDAY.value,
     bootstrap_servers=[SERVER],
     auto_offset_reset='earliest',
     value_deserializer=lambda m: json.loads(m.decode('utf-8')),

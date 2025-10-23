@@ -3,12 +3,13 @@
     config(
       target_schema='snapshots',
       strategy='check',
-      unique_key=['secid','boardid'],
-      check_cols=['issuesize']
+      unique_key='id',
+      check_cols=['secid', 'boardid', 'issuesize']
     )
 }}
 
 select
+    md5(secid || boardid || coalesce(issuesize::text, '')) id,
     upper(secid) as secid,
     upper(boardid) as boardid,
     cast(issuesize as bigint) as issuesize,

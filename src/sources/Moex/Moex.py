@@ -4,14 +4,14 @@ import os
 from airflow.exceptions import AirflowSkipException
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 import xmltodict
 from .MoexDocs import *
 from .iss_client import MicexAuth, Config
-from src.utils.path import Path, get_project_root, get_dotenv_path
+from src.utils.path import Path, get_dotenv_path
 from src.sources.Moex.MoexAuthenticationError import MoexAuthenticationError
-from logs.Logger import Logger
+from src.logger.Logger import Logger
 from src.utils.retries import retry
 
 SCHEMA = 'moex'
@@ -151,6 +151,7 @@ class Moex:
         return trades_df
 
     def getCompanies(self) -> pd.DataFrame:
+        """Companies Russia"""
         limit = 1000
         start = 0
         companies_df = pd.DataFrame()
@@ -198,7 +199,8 @@ class Moex:
         return securities_df
 
 
-    def getHistoryStockSharesSecuritiesLastMonth(self) -> pd.DataFrame:
+    def getHistoryStockSharesSecuritiesCurrentMonth(self) -> pd.DataFrame:
+        """Prices for current month"""
         res = pd.DataFrame()
         for param_date in pd.date_range(date.today().replace(day=1), date.today()):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
@@ -206,7 +208,17 @@ class Moex:
         self._finish_get_data(res, 'HistoryStockSharesSecurities')
         return res
 
-    def getHistoryStockSharesSecuritiesLastYear(self) -> pd.DataFrame:
+    def getHistoryStockSharesSecuritiesLastMonth(self) -> pd.DataFrame:
+        """Prices for last month"""
+        res = pd.DataFrame()
+        for param_date in pd.date_range(date.today() - timedelta(days=30), date.today()):
+            securities_df = self._getHistoryStockSharesSecurities(param_date)
+            res = pd.concat([res, securities_df])
+        self._finish_get_data(res, 'HistoryStockSharesSecurities')
+        return res
+
+    def getHistoryStockSharesSecuritiesCurrentYear(self) -> pd.DataFrame:
+        """Prices for current year"""
         res = pd.DataFrame()
         for param_date in pd.date_range(date(date.today().year, 1, 1), date.today()):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
@@ -214,7 +226,17 @@ class Moex:
         self._finish_get_data(res, 'HistoryStockSharesSecurities')
         return res
 
+    def getHistoryStockSharesSecuritiesLastYear(self) -> pd.DataFrame:
+        """Prices for last year"""
+        res = pd.DataFrame()
+        for param_date in pd.date_range(date.today() - timedelta(days=365), date.today()):
+            securities_df = self._getHistoryStockSharesSecurities(param_date)
+            res = pd.concat([res, securities_df])
+        self._finish_get_data(res, 'HistoryStockSharesSecurities')
+        return res
+
     def getHistoryStockSharesSecuritiesYear(self, year: int) -> pd.DataFrame:
+        """Prices for distinct year"""
         res = pd.DataFrame()
         for param_date in pd.date_range(date(year, 1, 1), date(year, 12, 31)):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
@@ -223,6 +245,7 @@ class Moex:
         return res
 
     def getHistoryStockSharesSecuritiesRange(self, start: date, end: date) -> pd.DataFrame:
+        """Prices for range of dates"""
         res = pd.DataFrame()
         for param_date in pd.date_range(start, end):
             securities_df = self._getHistoryStockSharesSecurities(param_date)

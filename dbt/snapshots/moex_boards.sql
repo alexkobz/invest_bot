@@ -3,7 +3,7 @@
     config(
       target_schema='snapshots',
       strategy='check',
-      unique_key=['id'],
+      unique_key='id',
       check_cols=['board_group_id', 'boardid']
     )
 }}

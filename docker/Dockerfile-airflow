@@ -1,20 +1,11 @@
 FROM apache/airflow:2.10.4
 USER airflow
-
 # install Python deps
 COPY ../requirements.txt .
 RUN pip install --no-cache-dir -r ./requirements.txt
 
-
 USER root
 WORKDIR /opt/airflow
 ENV PYTHONPATH=/opt/airflow
-
-# copy your code
 COPY ../.env ./.env
-COPY ../config ./config
-COPY ../dbt ./dbt
-COPY ../logs ./logs
-COPY ../scripts ./scripts
-COPY ../src ./src
-RUN chown -R "${AIRFLOW_UID}:0" /opt/airflow/config /opt/airflow/dbt /opt/airflow/logs /opt/airflow/scripts /opt/airflow/src
+RUN mkdir "logs"

@@ -5,31 +5,7 @@ models:
     config:
       materialized: table
       tags: [ 'sql' ]
-  - name: hst_moex_boards
-    config:
-      materialized: table
-      tags: [ 'sql' ]
-  - name: hst_moex_companies
-    config:
-      materialized: table
-      tags: [ 'sql' ]
   - name: hst_moex_prices
-    config:
-      materialized: table
-      tags: [ 'sql' ]
-  - name: hst_moex_shares
-    config:
-      materialized: table
-      tags: [ 'sql' ]
-  - name: hst_tbank_bonds
-    config:
-      materialized: table
-      tags: [ 'sql' ]
-  - name: hst_tbank_etfs
-    config:
-      materialized: table
-      tags: [ 'sql' ]
-  - name: hst_tbank_shares
     config:
       materialized: table
       tags: [ 'sql' ]

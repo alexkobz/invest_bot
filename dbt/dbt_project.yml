@@ -22,8 +22,6 @@ models:
     history:
       +schema: history
       +materialized: table
-#      +enabled: false
     core:
       +schema: core
       +materialized: table
-#      +enabled: false

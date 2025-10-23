@@ -79,6 +79,10 @@ x-airflow-common:
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
     - invest_data:/opt/airflow/data
+    - ../config:/opt/airflow/config
+    - ../dbt:/opt/airflow/dbt
+    - ../scripts:/opt/airflow/scripts
+    - ../src:/opt/airflow/src
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -240,8 +244,6 @@ services:
           echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
           echo
         fi
-        mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
@@ -292,7 +294,7 @@ services:
         condition: service_completed_successfully
 
 #  postgres-db:
-#    image: postgres:16
+#    image: postgres:17
 #    container_name: invest-postgres-db
 #    env_file:
 #      - ../.env
@@ -354,6 +356,7 @@ networks:
 
 volumes:
   postgres-db-volume:
+    external: true
   clickhouse-volume:
     external: true
   invest_bot_postgres:

@@ -18,7 +18,7 @@ from typing import List, Dict
 
 from api_model_python import get_project_root, Path
 
-from logs.Logger import Logger
+from src.logger.Logger import Logger
 
 
 logger = Logger()

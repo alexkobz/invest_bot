@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-import nest_asyncio
 import pandas as pd
 from airflow.exceptions import AirflowSkipException
 
@@ -8,12 +7,11 @@ import os
 from typing import Dict, List
 from dotenv import load_dotenv
 
-from logs.Logger import Logger
+from src.logger.Logger import Logger
 from sqlalchemy import create_engine
 
-from src.utils.path import Path, get_project_root, get_dotenv_path
+from src.utils.path import Path, get_dotenv_path
 
-nest_asyncio.apply()
 
 SCHEMA = 'tbank'
 

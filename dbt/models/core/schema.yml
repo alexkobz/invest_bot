@@ -1,6 +1,10 @@
 version: 2
 
 models:
+  - name: fct_fm_ratios
+    constraints:
+      - type: primary_key
+        columns: ['year', 'month', 'period', 'type', 'code', 'active']
   - name: fct_fundamentals
     description: "Table of fundamentals of russian companies from https://bo.nalog.ru/"
     columns:
@@ -35,9 +39,18 @@ models:
       - name: waval
       - name: tradingsession
       - name: trendclspr
+      - name: trade_session_date
     constraints:
       - type: primary_key
         columns: ['secid', 'boardid', 'tradedate']
     config:
       materialized: table
+      tags: [ 'sql' ]
+  - name: fct_tbank_historic_candles1min
+    constraints:
+      - type: primary_key
+        columns: ['year', 'month', 'period', 'type', 'code', 'active']
+  - name: v_shares
+    config:
+      materialized: view
       tags: [ 'sql' ]

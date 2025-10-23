@@ -209,7 +209,7 @@ class StockSharesSecurities(MarketSecurities):
     https://iss.moex.com/iss/reference/353
     Получить таблицу инструментов по режиму торгов.
     """
-    path = "/iss/engines/stock/markets/shares/securities"
+    path: str = "/iss/engines/stock/markets/shares/securities"
 
 
 class MarketSecurity(Endpoint):
@@ -284,7 +284,7 @@ class StockSharesBoards(Board):
     https://iss.moex.com/iss/reference/723
     Получить справочник режимов торгов рынка.
     """
-    path = "/iss/engines/stock/markets/shares/boards"
+    path: str = "/iss/engines/stock/markets/shares/boards"
 
 
 class BoardSecurities(Endpoint):
@@ -389,7 +389,7 @@ class StockSharesTQBRTrades(BoardTrades):
     https://iss.moex.com/iss/reference/325
     Получить все сделки по выбранному режиму торгов.
     """
-    path = "/iss/engines/stock/markets/shares/boards/tqbr/trades"
+    path: str = "/iss/engines/stock/markets/shares/boards/tqbr/trades"
 
 
 class BoardOrderbook(Endpoint):
@@ -616,7 +616,7 @@ class HistoryStockSharesSecurities(HistorySecurities):
     https://iss.moex.com/iss/reference/467
     Получить историю по всем бумагам на рынке за одну дату.
     """
-    path = "/iss/history/engines/stock/markets/shares/securities"
+    path: str = "/iss/history/engines/stock/markets/shares/securities"
 
 
 class HistoryYields(Endpoint):
@@ -756,4 +756,4 @@ class Companies(Endpoint):
     https://iss.moex.com/iss/reference/881
     Сервисы корпоративной информации. Справочная информация по организациям.
     """
-    path = "/iss/cci/info/companies"
+    path: str = "/iss/cci/info/companies"
