@@ -2,11 +2,10 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from datetime import datetime
-import nest_asyncio; nest_asyncio.apply()
 
-from src.sources.Moex.Moex import Moex
-from src.airflow.DbtOperator import DbtOperator
 from src.airflow.ReplicationClickHouseOperator import ReplicationClickHouseOperator
+from src.airflow.DbtOperator import DbtOperator
+from src.sources.Moex.Moex import Moex
 
 
 with DAG(

@@ -84,3 +84,11 @@ sources:
     schema: finance_marker
     tables:
       - name: ratios
+  - name: cbr
+    database: invest
+    schema: cbr
+    tables:
+      - name: KeyRate
+      - name: GetCursOnDate
+      - name: DragMetDynamic
+      - name: Ruonia

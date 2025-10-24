@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 import xml.etree.ElementTree as ET
 from src.sources.CBR.CBR import CBR
@@ -11,7 +11,7 @@ class KeyRate(CBR):
 
     def __init__(
         self,
-        from_date: str = '2013-09-16T00:00:00',
+        from_date: str = (date.today() - timedelta(days=30)).strftime('%Y-%m-%dT23:59:59'),
         to_date: str = date.today().strftime('%Y-%m-%dT23:59:59')
     ):
         super().__init__()

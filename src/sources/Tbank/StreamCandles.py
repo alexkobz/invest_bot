@@ -23,7 +23,6 @@ class StreamCandles(Tbank):
     def __init__(self):
         super().__init__()
         self.topic: str = None
-        self.consumer: KafkaConsumer = None
         self.interval: SubscriptionInterval = None
 
     async def _get_all_candles(
@@ -100,7 +99,6 @@ class StreamCandles1Min(StreamCandles):
     def __init__(self):
         super().__init__()
         self.topic: str = Topic.CANDLES1MIN.value
-        self.consumer: KafkaConsumer = consumer_candles_1min
         self.interval: SubscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE
 
 
@@ -108,7 +106,6 @@ class StreamCandles5Min(StreamCandles):
     def __init__(self):
         super().__init__()
         self.topic: str = Topic.CANDLES5MIN.value
-        self.consumer: KafkaConsumer = consumer_candles_5min
         self.interval: SubscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIVE_MINUTES
 
 
@@ -116,7 +113,6 @@ class StreamCandles15Min(StreamCandles):
     def __init__(self):
         super().__init__()
         self.topic: str = Topic.CANDLES15MIN.value
-        self.consumer: KafkaConsumer = consumer_candles_15min
         self.interval: SubscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIFTEEN_MINUTES
 
 
@@ -124,7 +120,6 @@ class StreamCandlesHour(StreamCandles):
     def __init__(self):
         super().__init__()
         self.topic: str = Topic.CANDLESHOUR.value
-        self.consumer: KafkaConsumer = consumer_candles_hour
         self.interval: SubscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_HOUR
 
 
@@ -132,5 +127,4 @@ class StreamCandlesDay(StreamCandles):
     def __init__(self):
         super().__init__()
         self.topic: str = Topic.CANDLESDAY.value
-        self.consumer: KafkaConsumer = consumer_candles_day
         self.interval: SubscriptionInterval = SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_DAY
