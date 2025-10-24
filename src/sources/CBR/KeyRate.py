@@ -1,5 +1,4 @@
 from datetime import date
-
 import pandas as pd
 import xml.etree.ElementTree as ET
 from src.sources.CBR.CBR import CBR
