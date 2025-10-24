@@ -1,6 +1,5 @@
 from datetime import date
 import pandas as pd
-import xml.etree.ElementTree as ET
 from src.sources.CBR.CBR import CBR
 
 
@@ -18,9 +17,11 @@ class GetCursOnDate(CBR):
             'On_date': on_date
         }
 
-    def _parse_response(self, root: ET.Element) -> pd.DataFrame:
+    def parse_response(self) -> pd.DataFrame:
         # Parse XML
-        entries = root.findall('.//diffgr:diffgram//ValuteCursOnDate', CBR.namespaces)
+        if self.root is None:
+            self.get_element()
+        entries = self.root.findall('.//diffgr:diffgram//ValuteCursOnDate', CBR.namespaces)
 
         # Extract values
         currencies = []
@@ -37,6 +38,6 @@ class GetCursOnDate(CBR):
             currencies.append(currency)
 
         # В виде pandas DataFrame
-        df = pd.DataFrame(currencies)
-        return df
+        self.df = pd.DataFrame(currencies)
+        return self.df
 

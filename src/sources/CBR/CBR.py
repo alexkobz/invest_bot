@@ -50,6 +50,8 @@ class CBR(ABC):
             connect_args={"options": f"-csearch_path={SCHEMA}"}
         )
         self.response = None
+        self.root = None
+        self.df = None
 
     @property
     def body(self):
@@ -76,23 +78,25 @@ class CBR(ABC):
     def get_element(self) -> Element:
         if self.response is None:
             self.response = self.send_request()
-        return ET.fromstring(self.response.text)
+            self.root = ET.fromstring(self.response.text)
+        return self.root
 
     @abstractmethod
-    def _parse_response(self, root: Element) -> pd.DataFrame:
+    def parse_response(self) -> pd.DataFrame:
         raise NotImplementedError()
 
-    def save_df(self, df: pd.DataFrame) -> None:
-        df.to_sql(
-            name=self.method,
-            con=self.engine,
-            if_exists='replace',
-            index=False
-        )
+    def save_df(self) -> None:
+        if self.df is not None:
+            self.df.to_sql(
+                name=self.method,
+                con=self.engine,
+                if_exists='replace',
+                index=False
+            )
 
     def run(self):
         self.send_request()
-        root = self.get_element()
-        df: pd.DataFrame = self._parse_response(root)
-        self.save_df(df)
-        return df
+        self.get_element()
+        self.parse_response()
+        self.save_df()
+        return self.df

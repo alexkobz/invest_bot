@@ -1,6 +1,5 @@
 from datetime import date, datetime, timedelta
 import pandas as pd
-import xml.etree.ElementTree as ET
 from src.sources.CBR.CBR import CBR
 
 
@@ -20,7 +19,7 @@ class DragMetDynamic(CBR):
             'ToDate': to_date
         }
 
-    def _parse_response(self, root: ET.Element) -> pd.DataFrame:
+    def parse_response(self) -> pd.DataFrame:
         # Metal code mapping (based on common precious metals)
         metal_codes = {
             '1': 'Gold',
@@ -28,9 +27,10 @@ class DragMetDynamic(CBR):
             '3': 'Platinum',
             '4': 'Palladium'
         }
-
+        if self.root is None:
+            self.get_element()
         # Find all DrgMet elements
-        drg_met_elements = root.findall(
+        drg_met_elements = self.root.findall(
             './/{urn:schemas-microsoft-com:xml-diffgram-v1}diffgram/DragMetall/DrgMet'
         )
 
@@ -51,5 +51,5 @@ class DragMetDynamic(CBR):
                 'price': float(price) if price else None
             }
             data.append(record)
-        df = pd.DataFrame(data)
-        return df
+        self.df = pd.DataFrame(data)
+        return self.df

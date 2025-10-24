@@ -20,10 +20,12 @@ class Ruonia(CBR):
             'ToDate': to_date
         }
 
-    def _parse_response(self, root: ET.Element) -> pd.DataFrame:
+    def parse_response(self) -> pd.DataFrame:
         # Find all ro elements
         ruonia_data = []
-        for ro in root.findall('.//diffgr:diffgram/Ruonia/ro', CBR.namespaces):
+        if self.root is None:
+            self.get_element()
+        for ro in self.root.findall('.//diffgr:diffgram/Ruonia/ro', CBR.namespaces):
             data = {}
 
             # Extract date (D0)
@@ -48,5 +50,5 @@ class Ruonia(CBR):
 
             ruonia_data.append(data)
 
-        df = pd.DataFrame(ruonia_data)
-        return df
+        self.df = pd.DataFrame(ruonia_data)
+        return self.df

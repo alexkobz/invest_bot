@@ -1,6 +1,5 @@
 from datetime import date, timedelta
 import pandas as pd
-import xml.etree.ElementTree as ET
 from src.sources.CBR.CBR import CBR
 
 
@@ -22,12 +21,13 @@ class GetCursDynamic(CBR):
             'ValutaCode': currency,
         }
 
-    def _parse_response(self, root: ET.Element) -> pd.DataFrame:
+    def parse_response(self) -> pd.DataFrame:
         # Parse XML
-
-        valute_data = root.find(f'.//http://web.cbr.ru/ValuteData')
+        if self.root is None:
+            self.get_element()
+        valute_data = self.root.find(f'.//http://web.cbr.ru/ValuteData')
         if valute_data is None:
-            valute_data = root.find('.//ValuteData')
+            valute_data = self.root.find('.//ValuteData')
 
         if valute_data is None:
             print("ValuteData element not found")
@@ -66,6 +66,6 @@ class GetCursDynamic(CBR):
 
             currency_rates.append(rate_data)
 
-        df = pd.DataFrame(currency_rates)
-        return df
+        self.df = pd.DataFrame(currency_rates)
+        return self.df
 

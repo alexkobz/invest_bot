@@ -20,9 +20,11 @@ class KeyRate(CBR):
             'ToDate': to_date
         }
 
-    def _parse_response(self, root: ET.Element) -> pd.DataFrame:
+    def parse_response(self) -> pd.DataFrame:
         # Parse XML
-        entries = root.findall(".//KR", CBR.namespaces)
+        if self.root is None:
+            self.get_element()
+        entries = self.root.findall(".//KR", CBR.namespaces)
 
         # Extract values
         result = []
@@ -36,5 +38,5 @@ class KeyRate(CBR):
         if not df.empty:
             df['date'] = pd.to_datetime(df['date'], utc=True).dt.date
             df['rate'] = pd.to_numeric(df['rate'], errors='coerce')
-
-        return df
+        self.df = df
+        return self.df
