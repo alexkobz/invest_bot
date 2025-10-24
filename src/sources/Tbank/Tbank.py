@@ -1,15 +1,12 @@
 from abc import ABC, abstractmethod
-
 import pandas as pd
 from airflow.exceptions import AirflowSkipException
-
 import os
 from typing import Dict, List
 from dotenv import load_dotenv
-
-from src.logger.Logger import Logger
 from sqlalchemy import create_engine
 
+from src.logger.Logger import Logger
 from src.utils.path import Path, get_dotenv_path
 
 
