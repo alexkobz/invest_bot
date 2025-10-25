@@ -54,3 +54,23 @@ models:
     config:
       materialized: view
       tags: [ 'sql' ]
+  - name: bank_liquidity
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: inflation
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: key_rate
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: precious_metals
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: rub_rate
+    config:
+      materialized: ruonia
+      tags: [ 'sql' ]

@@ -10,9 +10,9 @@ class GetCursDynamic(CBR):
 
     def __init__(
         self,
-        from_date: str = date(1990, 1, 1).strftime('%Y-%m-%dT23:59:59'),
+        from_date: str = date(2025, 1, 1).strftime('%Y-%m-%dT00:00:00'),
         to_date: str = date.today().strftime('%Y-%m-%dT23:59:59'),
-        currency : str = 'R01235',
+        currency : str = 'USD',
     ):
         super().__init__()
         self.params: dict[str, str] = {

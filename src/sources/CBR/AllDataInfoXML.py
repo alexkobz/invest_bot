@@ -33,7 +33,6 @@ class AllDataInfoXML(CBR):
                 name = metal.tag
                 current_val = metal.get('val', 'N/A')
                 old_val = metal.get('old_val', 'N/A')
-                print(f"{name}: {current_val} (Previous: {old_val})")
 
                 metals_data.append({
                     'metal': name,
@@ -53,7 +52,6 @@ class AllDataInfoXML(CBR):
         if key_rate is not None:
             rate_val = key_rate.get('val')
             rate_date = key_rate.get('date')
-            print(f"Current Key Rate: {rate_val}% (Date: {rate_date})")
 
             key_rates_data.append({
                 'type': 'current',
@@ -66,7 +64,6 @@ class AllDataInfoXML(CBR):
         if key_rate_future is not None:
             future_rate = key_rate_future.get('val')
             future_date = key_rate_future.get('newdate')
-            print(f"Future Key Rate: {future_rate}% (Date: {future_date})")
 
             key_rates_data.append({
                 'type': 'future',
@@ -85,7 +82,6 @@ class AllDataInfoXML(CBR):
         if inflation is not None:
             inflation_rate = inflation.get('val')
             inflation_date = inflation.get('OnDate')
-            print(f"Inflation: {inflation_rate}% (Date: {inflation_date})")
 
             inflation_data.append({
                 'indicator': 'inflation',
@@ -98,7 +94,6 @@ class AllDataInfoXML(CBR):
         if inflation_target is not None:
             target_rate = inflation_target.get('val')
             target_date = inflation_target.get('OnDate')
-            print(f"Inflation Target: {target_rate}% (Date: {target_date})")
 
             inflation_data.append({
                 'indicator': 'target',
@@ -119,7 +114,6 @@ class AllDataInfoXML(CBR):
             if d1 is not None:
                 current_val = d1.get('val')
                 old_val = d1.get('old_val', 'N/A')
-                print(f"RUONIA 1-day: {current_val}% (Previous: {old_val}%)")
 
                 ruonia_data.append({
                     'period': '1_day',
@@ -191,7 +185,6 @@ class AllDataInfoXML(CBR):
         return df_liquidity
 
     def parse_response(self) -> dict[str, pd.DataFrame]:
-
         if self.root is None:
             self.get_element()
         currency = self.currency()

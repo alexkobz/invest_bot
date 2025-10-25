@@ -78,7 +78,7 @@ class CBR(ABC):
     def get_element(self) -> Element:
         if self.response is None:
             self.response = self.send_request()
-            self.root = ET.fromstring(self.response.text)
+        self.root = ET.fromstring(self.response.text)
         return self.root
 
     @abstractmethod
@@ -90,7 +90,7 @@ class CBR(ABC):
             self.df.to_sql(
                 name=self.method,
                 con=self.engine,
-                if_exists='replace',
+                if_exists='append',
                 index=False
             )
 
