@@ -1,4 +1,4 @@
-FROM apache/airflow:2.10.4
+FROM apache/airflow:3.1.0
 USER airflow
 # install Python deps
 COPY ../requirements.txt .

@@ -47,13 +47,13 @@
 x-airflow-common:
   &airflow-common
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
-  # Comment the image line, place your Dockerfile-airflow in the directory where you placed the docker-compose-airflow.yaml
+  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose-airflow.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
 #  image: ${AIRFLOW_IMAGE_NAME:-invest_bot:latest}
-  image: invest_airflow:latest
+  image: invest_bot:latest
   build:
     context: ..
-    dockerfile: docker/Dockerfile-airflow
+    dockerfile: docker/Dockerfile
   #  entrypoint:
 #    ["bin/bash", "-c", ""]
   environment:
@@ -86,15 +86,13 @@ x-airflow-common:
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
-    redis:
+    airflow-postgres:
       condition: service_healthy
-    postgres:
+    airflow-redis:
       condition: service_healthy
-#    postgres-db:
-#      condition: service_healthy
 
 services:
-  postgres:
+  airflow-postgres:
     image: postgres:13
     container_name: airflow_postgres
     environment:
@@ -102,7 +100,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - airflow-postgres-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -110,7 +108,7 @@ services:
       start_period: 5s
     restart: always
 
-  redis:
+  airflow-redis:
     # Redis is limited to 7.2-bookworm due to licencing change
     # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
     image: redis:7.2-bookworm
@@ -276,7 +274,7 @@ services:
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
   # See: https://docs.docker.com/compose/profiles/
-  flower:
+  airflow-flower:
     <<: *airflow-common
     command: celery flower
     ports:
@@ -293,23 +291,23 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-#  postgres-db:
-#    image: postgres:17
-#    container_name: invest-postgres-db
-#    env_file:
-#      - ../.env
-#    volumes:
-#      - invest_bot_postgres:/var/lib/postgresql/data
-#    ports:
-#      - "5432:5432"
-#    healthcheck:
-#      test: ["CMD", "pg_isready", "-U", "postgres"]
-#      interval: 10s
-#      retries: 5
-#      start_period: 5s
-#    restart: always
-#    extra_hosts:
-#        - "host.docker.internal:host-gateway"
+  postgres-db:
+    image: postgres:17
+    container_name: invest-postgres-db
+    env_file:
+      - ../.env
+    volumes:
+      - invest_bot_postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
 
   clickhouse-server:
     image: clickhouse/clickhouse-server:24.3.6
@@ -331,32 +329,30 @@ services:
       - "5521:5521"
     env_file:
       - ../.env
+#
+#  selenium-firefox:
+#    image: selenium/standalone-firefox:latest
+#    platform: linux/amd64
+#    container_name: selenium-firefox
+#    restart: on-failure
+#    environment:
+#      - SE_EVENT_BUS_HOST=selenium-hub
+#      - SE_EVENT_BUS_PUBLISH_PORT=4442
+#      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+#    shm_size: "2g"  # Prevent shared memory issues
+#    networks:
+#      - selenium-network
+#    volumes:
+#      - invest_data:/opt/airflow/data
+#    ports:
+#      - "4444:4444"
+#    user: "${AIRFLOW_UID:-50000}:0"
 
-  selenium-firefox:
-    image: selenium/standalone-firefox:latest
-    platform: linux/amd64
-    container_name: selenium-firefox
-    restart: on-failure
-    environment:
-      - SE_EVENT_BUS_HOST=selenium-hub
-      - SE_EVENT_BUS_PUBLISH_PORT=4442
-      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-    shm_size: "2g"  # Prevent shared memory issues
-    networks:
-      - selenium-network
-    volumes:
-      - invest_data:/opt/airflow/data
-    ports:
-      - "4444:4444"
-    user: "${AIRFLOW_UID:-50000}:0"
-
-networks:
-  selenium-network:
-    driver: bridge
+#networks:
+#  selenium-network:
+#    driver: bridge
 
 volumes:
-  postgres-db-volume:
-    external: true
   clickhouse-volume:
     external: true
   invest_bot_postgres:

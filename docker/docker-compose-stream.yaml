@@ -2,10 +2,10 @@ version: '3.8'
 
 x-stream-common:
   &stream-common
-  image: invest_stream:latest
+  image: invest_bot:latest
   build:
     context: ..
-    dockerfile: docker/Dockerfile-stream
+    dockerfile: docker/Dockerfile
   volumes:
     - ../scripts:/app/scripts
     - ../src:/app/src
@@ -90,25 +90,6 @@ services:
     command: python scripts/consume_stream_candles_1_min.py
     depends_on:
       <<: *stream-common-depends-on
-
-  postgres-db:
-    image: postgres:17
-    container_name: invest-postgres-db
-    env_file:
-      - ../.env
-    volumes:
-      - invest_bot_postgres:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      retries: 5
-      start_period: 5s
-    restart: always
-    extra_hosts:
-        - "host.docker.internal:host-gateway"
-
 
 networks:
   kafka-net:

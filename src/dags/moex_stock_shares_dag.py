@@ -1,7 +1,7 @@
 from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.python import PythonOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.sdk import TaskGroup
 from datetime import datetime
 
 from src.airflow.DbtOperator import DbtOperator
