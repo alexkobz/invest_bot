@@ -1,13 +1,10 @@
 import os
-from abc import ABC, abstractmethod
-from xml.etree.ElementTree import Element
-
-import requests
 import pandas as pd
-import xml.etree.ElementTree as ET
+from abc import ABC, abstractmethod
 from dotenv import load_dotenv
-from requests import Response
 from sqlalchemy import create_engine
+from zeep import Client
+from zeep.proxy import ServiceProxy
 
 from src.logger.Logger import Logger
 from src.utils.path import get_dotenv_path, Path
@@ -22,22 +19,9 @@ load_dotenv(dotenv_path=dotenv_path)
 
 class CBR(ABC):
 
-    url = 'https://www.cbr.ru/DailyInfoWebServ/DailyInfo.asmx'
-    # Define namespaces
-    namespaces = {
-        "soap": "http://schemas.xmlsoap.org/soap/envelope/",
-        "cbr": "http://web.cbr.ru/",
-        "diffgr": "urn:schemas-microsoft-com:xml-diffgram-v1",
-        "msdata": "urn:schemas-microsoft-com:xml-msdata"
-    }
+    url = 'https://www.cbr.ru/DailyInfoWebServ/DailyInfo.asmx?WSDL'
 
     def __init__(self):
-        self.params: dict[str, str] = {}
-        self.method = self.__class__.__name__
-        self.headers = {
-            "Content-Type": "text/xml; charset=utf-8",
-            "SOAPAction": f"http://web.cbr.ru/{self.method}"
-        }
         DATABASE_URI: str = (
             f"postgresql://"
             f"{os.environ['POSTGRES_USER']}:"
@@ -49,54 +33,32 @@ class CBR(ABC):
             DATABASE_URI,
             connect_args={"options": f"-csearch_path={SCHEMA}"}
         )
-        self.response = None
-        self.root = None
-        self.df = None
+        self.service = None
+        self.df: pd.DataFrame = pd.DataFrame()
 
-    @property
-    def body(self):
-        params_xml = "".join(f"<{k}>{v}</{k}>" for k, v in self.params.items())
 
-        body = f"""<?xml version="1.0" encoding="utf-8"?>
-        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                       xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-          <soap:Body>
-            <{self.method} xmlns="http://web.cbr.ru/">
-              {params_xml}
-            </{self.method}>
-          </soap:Body>
-        </soap:Envelope>""".encode('utf-8')
-        return body
-
-    def send_request(self) -> Response:
-        response = requests.post(self.url, data=self.body, headers=self.headers)
-        response.raise_for_status()
-        self.response: Response = response
-        return response
-
-    def get_element(self) -> Element:
-        if self.response is None:
-            self.response = self.send_request()
-        self.root = ET.fromstring(self.response.text)
-        return self.root
+    def get_service(self) -> ServiceProxy:
+        client = Client(self.url)
+        self.service = client.service
+        return self.service
 
     @abstractmethod
     def parse_response(self) -> pd.DataFrame:
         raise NotImplementedError()
 
-    def save_df(self) -> None:
-        if self.df is not None:
+    def save_df(self) -> bool:
+        if self.df is not None or not self.df.empty:
             self.df.to_sql(
-                name=self.method,
+                name=self.__class__.__name__,
                 con=self.engine,
                 if_exists='append',
                 index=False
             )
+            return True
+        return False
 
     def run(self):
-        self.send_request()
-        self.get_element()
+        self.get_service()
         self.parse_response()
         self.save_df()
         return self.df
