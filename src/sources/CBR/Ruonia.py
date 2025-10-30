@@ -25,6 +25,8 @@ class Ruonia(CBR):
 
 
     def parse_response(self) -> pd.DataFrame:
+        if self.service is None:
+            self.get_service()
         response = self.service.Ruonia(
             fromDate=self.from_date,
             ToDate=self.to_date,
@@ -34,15 +36,15 @@ class Ruonia(CBR):
         items = data.get('_value_1', {}).get('_value_1', [])
         records = [
             {
-                'Date': rec['ro']['D0'],
-                'Rate': float(rec['ro']['ruo']),
-                'Volume': float(rec['ro']['vol']),
-                'DateUpdate': rec['ro']['DateUpdate']
+                'date': rec['ro']['D0'],
+                'rate': float(rec['ro']['ruo']),
+                'volume': float(rec['ro']['vol']),
+                'date_update': rec['ro']['DateUpdate']
             }
             for rec in items
         ]
         df = pd.DataFrame(records)
-        df['Date'] = pd.to_datetime(df['Date'].apply(lambda x: x.replace(tzinfo=None)))
-        df['DateUpdate'] = pd.to_datetime(df['DateUpdate'].apply(lambda x: x.replace(tzinfo=None)))
+        df['date'] = pd.to_datetime(df['date'].apply(lambda x: x.replace(tzinfo=None)))
+        df['date_update'] = pd.to_datetime(df['date_update'].apply(lambda x: x.replace(tzinfo=None)))
         self.df = df
         return self.df

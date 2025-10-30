@@ -25,8 +25,10 @@ class Bliquidity(CBR):
 
 
     def parse_response(self) -> pd.DataFrame:
+        if self.service is None:
+            self.get_service()
         response = self.service.Bliquidity(
-            FromDate=self.from_date,
+            fromDate=self.from_date,
             ToDate=self.to_date,
         )
         # Convert Zeep object → plain Python types
@@ -35,7 +37,7 @@ class Bliquidity(CBR):
         for item in data['_value_1']['_value_1']:
             rec = item['BL']
             records.append({
-                'Date': rec['DT'],
+                'DT': rec['DT'],
                 'StrLiDefNew': float(rec['StrLiDefNew']),
                 'StrLiDef': float(rec['StrLiDef']),
                 'claims': float(rec['claims']),
@@ -53,6 +55,6 @@ class Bliquidity(CBR):
             })
 
         df = pd.DataFrame(records)
-        df['Date'] = pd.to_datetime(df['Date'].apply(lambda x: x.replace(tzinfo=None)).dt.date)
+        df['DT'] = pd.to_datetime(df['DT'].apply(lambda x: x.replace(tzinfo=None)).dt.date)
         self.df = df
         return self.df

@@ -4,8 +4,8 @@ from airflow.providers.standard.operators.python import PythonOperator
 from airflow.sdk import TaskGroup
 from datetime import datetime
 
-from src.airflow.DbtOperator import DbtOperator
-from src.airflow.ReplicationClickHouseOperator import ReplicationClickHouseOperator
+from utils.DbtOperator import DbtOperator
+from utils.ReplicationClickHouseOperator import ReplicationClickHouseOperator
 from src.sources.Moex.Moex import Moex
 
 

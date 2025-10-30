@@ -6,8 +6,8 @@
     merge_update_columns=['value']
   )
 }}
-SELECT DISTINCT
-	to_date("date", 'DD.MM.YYYY') AS "date",
-	"value"::double precision AS "value"
+SELECT DISTINCT ON ((date_trunc('month', "date") - interval '1 month')::date)
+    (date_trunc('month', "date") - interval '1 month')::date AS "date",
+    "Inflation"::double precision AS value
 FROM {{ ref('stg_cbr_main_info') }}
-WHERE lower(indicator) = 'inflation'
+ORDER BY "date"

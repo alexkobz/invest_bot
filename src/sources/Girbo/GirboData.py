@@ -26,7 +26,7 @@ logger = Logger()
 
 class GirboData:
 
-    _download_dir: str = '/opt/airflow/data/girbo_fundamentals'
+    _download_dir: str = '/opt/utils/data/girbo_fundamentals'
 
     def __init__(self):
         env_path: Path = get_project_root()

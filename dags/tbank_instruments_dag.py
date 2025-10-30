@@ -4,7 +4,7 @@ from airflow.providers.standard.operators.python import PythonOperator
 from airflow.sdk import TaskGroup
 from datetime import datetime
 
-from src.airflow.DbtOperator import DbtOperator
+from utils.DbtOperator import DbtOperator
 from src.sources.Tbank.Instruments import Bonds, Etfs, Shares
 
 

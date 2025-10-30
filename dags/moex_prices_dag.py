@@ -3,8 +3,8 @@ from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.providers.standard.operators.python import PythonOperator
 from datetime import datetime
 
-from src.airflow.ReplicationClickHouseOperator import ReplicationClickHouseOperator
-from src.airflow.DbtOperator import DbtOperator
+from utils.ReplicationClickHouseOperator import ReplicationClickHouseOperator
+from utils.DbtOperator import DbtOperator
 from src.sources.Moex.Moex import Moex
 
 

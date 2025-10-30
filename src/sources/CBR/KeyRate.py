@@ -25,6 +25,8 @@ class KeyRate(CBR):
 
 
     def parse_response(self) -> pd.DataFrame:
+        if self.service is None:
+            self.get_service()
         response = self.service.KeyRate(
             fromDate=self.from_date,
             ToDate=self.to_date,
@@ -33,12 +35,12 @@ class KeyRate(CBR):
         data = serialize_object(response)
         # The structure is nested; KeyRateResult → _value_1 → _value_1 → list of rows
         records = [
-            {'Date': item['KR']['DT'], 'Rate': item['KR']['Rate']}
+            {'date': item['KR']['DT'], 'rate': item['KR']['Rate']}
             for item in data['_value_1']['_value_1']
         ]
         # Build a DataFrame
         df = pd.DataFrame(records)
-        df['Date'] = pd.to_datetime(df['Date'].apply(lambda x: x.replace(tzinfo=None)).dt.date)
-        df['Rate'] = df['Rate'].astype(float)
+        df['date'] = pd.to_datetime(df['date'].apply(lambda x: x.replace(tzinfo=None)).dt.date)
+        df['rate'] = df['rate'].astype(float)
         self.df = df
         return self.df

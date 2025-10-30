@@ -24,7 +24,7 @@
 # The following variables are supported:
 #
 # AIRFLOW_IMAGE_NAME           - Docker image name used to run Airflow.
-#                                Default: apache/airflow:2.10.4
+#                                Default: apache/airflow:3.1.1
 # AIRFLOW_UID                  - User ID in Airflow containers
 #                                Default: 50000
 # AIRFLOW_PROJ_DIR             - Base path to which all the files will be volumed.
@@ -46,26 +46,26 @@
 ---
 x-airflow-common:
   &airflow-common
-  # In order to add custom dependencies or upgrade provider packages you can use your extended image.
-  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose-airflow.yaml
+  # In order to add custom dependencies or upgrade provider distributions you can use your extended image.
+  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-#  image: ${AIRFLOW_IMAGE_NAME:-invest_bot:latest}
-  image: invest_bot:latest
+  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.1.1}
   build:
-    context: ..
-    dockerfile: docker/Dockerfile
-  #  entrypoint:
-#    ["bin/bash", "-c", ""]
+#    context: ${AIRFLOW_PROJ_DIR:-..}
+    dockerfile: ${AIRFLOW_PROJ_DIR:-..}/docker/Dockerfile
+  env_file:
+    - ${AIRFLOW_PROJ_DIR:-..}/.env
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
-    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -75,32 +75,34 @@ x-airflow-common:
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
-    # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    AIRFLOW_PROJ_DIR: ..
+    PYTHONPATH: /opt/airflow
   volumes:
     - invest_data:/opt/airflow/data
-    - ../config:/opt/airflow/config
-    - ../dbt:/opt/airflow/dbt
-    - ../scripts:/opt/airflow/scripts
-    - ../src:/opt/airflow/src
+    - ${AIRFLOW_PROJ_DIR:-..}/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-..}/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-..}/config:/opt/airflow/config
+    - ${AIRFLOW_PROJ_DIR:-..}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-..}/dbt:/opt/airflow/dbt
+    - ${AIRFLOW_PROJ_DIR:-..}/src:/opt/airflow/src
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
-    airflow-postgres:
+    redis:
       condition: service_healthy
-    airflow-redis:
+    postgres:
       condition: service_healthy
 
 services:
-  airflow-postgres:
-    image: postgres:13
-    container_name: airflow_postgres
+  postgres:
+    image: postgres:16
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - airflow-postgres-volume:/var/lib/postgresql/data
+      - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -108,7 +110,7 @@ services:
       start_period: 5s
     restart: always
 
-  airflow-redis:
+  redis:
     # Redis is limited to 7.2-bookworm due to licencing change
     # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
     image: redis:7.2-bookworm
@@ -122,13 +124,13 @@ services:
       start_period: 30s
     restart: always
 
-  airflow-webserver:
+  airflow-apiserver:
     <<: *airflow-common
-    command: webserver
+    command: api-server
     ports:
-      - "8081:8080"
+      - "8080:8080"
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -144,6 +146,21 @@ services:
     command: scheduler
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"']
       interval: 30s
       timeout: 10s
       retries: 5
@@ -174,10 +191,11 @@ services:
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
+      airflow-apiserver:
+        condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
 
-  # OPTIONAL
   airflow-triggerer:
     <<: *airflow-common
     command: triggerer
@@ -208,6 +226,7 @@ services:
           echo "For other operating systems you can get rid of the warning with manually created .env file:"
           echo "    See: https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#setting-the-right-airflow-user"
           echo
+          export AIRFLOW_UID=$$(id -u)
         fi
         one_meg=1048576
         mem_available=$$(($$(getconf _PHYS_PAGES) * $$(getconf PAGE_SIZE) / one_meg))
@@ -242,7 +261,38 @@ services:
           echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
           echo
         fi
-        exec /entrypoint airflow version
+        echo
+        echo "Creating missing opt dirs if missing:"
+        echo
+        mkdir -v -p /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Airflow version:"
+        /entrypoint airflow version
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Running airflow config list to create default config file if missing."
+        echo
+        /entrypoint airflow config list >/dev/null
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Change ownership of files in /opt/airflow to ${AIRFLOW_UID}:0"
+        echo
+        chown -R "${AIRFLOW_UID}:0" /opt/airflow/
+        echo
+        echo "Change ownership of files in shared volumes to ${AIRFLOW_UID}:0"
+        echo
+        chown -v -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+
     # yamllint enable rule:line-length
     environment:
       <<: *airflow-common-env
@@ -252,11 +302,7 @@ services:
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
-    volumes:
-      - ${AIRFLOW_PROJ_DIR:-.}:/sources
-      - invest_data:/opt/airflow/data
 
-  # OPTIONAL
   airflow-cli:
     <<: *airflow-common
     profiles:
@@ -269,14 +315,17 @@ services:
       - bash
       - -c
       - airflow
+    depends_on:
+      <<: *airflow-common-depends-on
 
-  # OPTIONAL
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
   # See: https://docs.docker.com/compose/profiles/
-  airflow-flower:
+  flower:
     <<: *airflow-common
     command: celery flower
+    profiles:
+      - flower
     ports:
       - "5555:5555"
     healthcheck:
@@ -291,71 +340,6 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  postgres-db:
-    image: postgres:17
-    container_name: invest-postgres-db
-    env_file:
-      - ../.env
-    volumes:
-      - invest_bot_postgres:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      retries: 5
-      start_period: 5s
-    restart: always
-    extra_hosts:
-        - "host.docker.internal:host-gateway"
-
-  clickhouse-server:
-    image: clickhouse/clickhouse-server:24.3.6
-    container_name: clickhouse-server
-    ports:
-      - "8123:8123"  # HTTP interface
-      - "9000:9000"
-    volumes:
-      - ../src/clickhouse/processed_configs/config.xml:/etc/clickhouse-server/config.xml
-      - ../src/clickhouse/processed_configs/users.xml:/etc/clickhouse-server/users.xml
-      - clickhouse-volume:/var/lib/clickhouse
-    restart: always
-
-  # OPTIONAL
-  ch-ui:
-    image: ghcr.io/caioricciuti/ch-ui:latest
-    restart: always
-    ports:
-      - "5521:5521"
-    env_file:
-      - ../.env
-#
-#  selenium-firefox:
-#    image: selenium/standalone-firefox:latest
-#    platform: linux/amd64
-#    container_name: selenium-firefox
-#    restart: on-failure
-#    environment:
-#      - SE_EVENT_BUS_HOST=selenium-hub
-#      - SE_EVENT_BUS_PUBLISH_PORT=4442
-#      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-#    shm_size: "2g"  # Prevent shared memory issues
-#    networks:
-#      - selenium-network
-#    volumes:
-#      - invest_data:/opt/airflow/data
-#    ports:
-#      - "4444:4444"
-#    user: "${AIRFLOW_UID:-50000}:0"
-
-#networks:
-#  selenium-network:
-#    driver: bridge
-
 volumes:
-  clickhouse-volume:
-    external: true
-  invest_bot_postgres:
-    external: true
+  postgres-db-volume:
   invest_data:
-    external: true

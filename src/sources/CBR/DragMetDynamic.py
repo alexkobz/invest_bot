@@ -25,6 +25,14 @@ class DragMetDynamic(CBR):
 
 
     def parse_response(self) -> pd.DataFrame:
+        metal_codes = {
+            1: 'gold',
+            2: 'silver',
+            3: 'platinum',
+            4: 'palladium'
+        }
+        if self.service is None:
+            self.get_service()
         response = self.service.DragMetDynamic(
             fromDate=self.from_date,
             ToDate=self.to_date,
@@ -33,13 +41,14 @@ class DragMetDynamic(CBR):
         items = data.get('_value_1', {}).get('_value_1', [])
         records = [
             {
-                'Date': rec['DrgMet']['DateMet'],
-                'MetalCode': int(rec['DrgMet']['CodMet']),
-                'Price': float(rec['DrgMet']['price'])
+                'date': rec['DrgMet']['DateMet'],
+                'code': int(rec['DrgMet']['CodMet']),
+                'metal_name': metal_codes.get(int(rec['DrgMet']['CodMet']), f'Unknown_{int(rec['DrgMet']['CodMet'])}'),
+                'price': float(rec['DrgMet']['price'])
             }
             for rec in items
         ]
         df = pd.DataFrame(records)
-        df['Date'] = pd.to_datetime(df['Date'].apply(lambda x: x.replace(tzinfo=None)).dt.date)
+        df['date'] = pd.to_datetime(df['date'].apply(lambda x: x.replace(tzinfo=None)).dt.date)
         self.df = df
         return self.df

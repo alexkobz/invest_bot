@@ -1,15 +1,79 @@
-Welcome to your new dbt project!
+# 🧠 Quant & HFT Trading Bot
 
-### Using the starter project
+> A modular, high-performance framework for quantitative and high-frequency trading — built for research, backtesting, and live execution.
 
-Try running the following commands:
-- dbt run
-- dbt test
+---
+
+## 📈 Overview
+
+This project provides a full **quantitative trading infrastructure**, including:
+
+- **Data ingestion & preprocessing** (tick, bar, and fundamental data)
+- **Alpha research** with feature engineering and signal generation
+- **Backtesting engine** with realistic market simulation
+- **Execution layer** for low-latency trading
+- **Monitoring & logging** for live strategies
+
+The goal is to create a scalable, testable, and extensible foundation for both **research** and **live HFT systems**.
+
+---
+
+## ⚙️ Installation
+
+```bash
+git clone https://github.com/yourname/quant-hft.git
+cd quant-hft
+
+# Create environment
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+(Optional, using Docker)
+
+docker-compose up -d -f docker/docker-compose-airflow.yml
+```
+
+⸻
+
+🧪 Example Usage
+
+### TODO
+
+⸻
+
+📊 Strategies
+
+### TODO
 
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+⸻
+
+🧰 Tech Stack
+
+Layer	Technology
+Data	PostgreSQL, Parquet, Redis
+Compute	Python, Pandas, NumPy
+Streaming	Kafka, WebSocket
+Backtesting	Vectorized (NumPy) + event-driven (todo)
+Execution	Tinkoff API
+Monitoring	Prometheus, Grafana, ELK (todo)
+
+
+⸻
+
+🧑‍💻 Authors
+
+Alexander Kobzar
+
+📧 alexanderkobzarrr@gmail.com
+
+⸻
+
+⚠️ Disclaimer
+
+This project is for educational and research purposes only.
+It does not constitute financial advice or an offer to trade any financial instrument.
+Use at your own risk.
