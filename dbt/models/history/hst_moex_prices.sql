@@ -3,5 +3,7 @@
     materialized='incremental',
     incremental_strategy='append')
 }}
-SELECT *
+SELECT
+    *,
+    NOW() AS load_ts
 FROM {{ ref('stg_moex_prices') }}

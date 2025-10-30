@@ -22,7 +22,6 @@ models:
     history:
       +schema: history
       +materialized: table
-    marts:
-      +schema: marts
+    core:
+      +schema: core
       +materialized: table
-  +incremental_strategy: "insert_overwrite"

@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: fct_fm_ratios
+    constraints:
+      - type: primary_key
+        columns: ['year', 'month', 'period', 'type', 'code', 'active']
+  - name: fct_fundamentals
+    description: "Table of fundamentals of russian companies from https://bo.nalog.ru/"
+    columns:
+      - name: inn
+        description: "INN of organization"
+      - name: year
+        description: "year of reporting"
+    constraints:
+      - type: primary_key
+        columns: [ "inn", "year" ]
+  - name: fct_moex_prices
+    description: "Fact table of prices from moex"
+    columns:
+      - name: boardid
+      - name: tradedate
+      - name: secid
+      - name: numtrades
+      - name: value
+      - name: open
+      - name: low
+      - name: high
+      - name: legalcloseprice
+      - name: waprice
+      - name: close
+      - name: volume
+      - name: marketprice2
+      - name: marketprice3
+      - name: admittedquote
+      - name: mp2valtrd
+      - name: marketprice3tradesvalue
+      - name: admittedvalue
+      - name: waval
+      - name: tradingsession
+      - name: trendclspr
+      - name: trade_session_date
+    constraints:
+      - type: primary_key
+        columns: ['secid', 'boardid', 'tradedate']
+    config:
+      materialized: table
+      tags: [ 'sql' ]
+  - name: fct_tbank_historic_candles1min
+    constraints:
+      - type: primary_key
+        columns: ['year', 'month', 'period', 'type', 'code', 'active']
+  - name: v_shares
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: bank_liquidity
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: inflation
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: key_rate
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: precious_metals
+    config:
+      materialized: view
+      tags: [ 'sql' ]
+  - name: rub_rate
+    config:
+      materialized: ruonia
+      tags: [ 'sql' ]

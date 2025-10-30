@@ -1,6 +1,9 @@
 version: 2
 
 models:
+  - name: stg_girbo_fundamentals
+    config:
+      materialized: view
   - name: stg_moex_boards
     columns:
       - name: id
@@ -8,31 +11,12 @@ models:
       - name: boardid
       - name: title
       - name: is_traded
-      - name: load_ts
     config:
       materialized: view
-  - name: stg_moex_securities_trading
-    columns:
-      - name: id
-      - name: secid
-      - name: shortname
-      - name: regnumber
-      - name: name
-      - name: isin
-      - name: is_traded
-      - name: emitent_id
-      - name: emitent_title
-      - name: emitent_inn
-      - name: emitent_okpo
-      - name: gosreg
-      - name: type
-      - name: group
-      - name: primary_boardid
-      - name: marketprice_boardid
-      - name: load_ts
+  - name: stg_moex_companies
     config:
       materialized: view
-  - name: stg_moex_securities_info
+  - name: stg_moex_shares
     config:
       materialized: view
   - name: stg_moex_prices
@@ -61,48 +45,52 @@ models:
       - name: currencyid
       - name: trendclspr
       - name: trade_session_date
-      - name: load_ts
     config:
       materialized: view
-  - name: stg_rudata_emitents
-    config:
-      materialized: view
-  - name: stg_girbo_organizations_cards
-    columns:
-      - name: inn
-      - name: card
-      - name: load_ts
-    config:
-      materialized: view
-  - name: stg_girbo_fundamentals
-    config:
-      materialized: view
-  - name: stg_ratios
-    config:
-      materialized: view
+#  - name: stg_rudata_emitents
+#    config:
+#      materialized: view
 
 sources:
   - name: moex
     database: invest
-    schema: public
+    schema: moex
     tables:
-      - name: api_moex_boards
-      - name: api_moex_securities_trading
-      - name: api_moex_securities_info
-      - name: api_moex_prices
-  - name: rudata
-    database: invest
-    schema: public
-    tables:
-      - name: api_rudata_emitents
+      - name: Companies
+      - name: HistoryStockSharesSecurities
+      - name: StockSharesBoards
+      - name: StockSharesSecurities
+      - name: StockSharesSecuritiesMarketData
+#  - name: rudata
+#    database: invest
+#    schema: rudata
+#    tables:
+#      - name: api_rudata_emitents
   - name: girbo
     database: invest
-    schema: public
+    schema: girbo
     tables:
-      - name: api_girbo_organizations_cards
-      - name: api_girbo_fundamentals
+      - name: fundamentals
+  - name: tbank
+    database: invest
+    schema: tbank
+    tables:
+      - name: bonds
+      - name: etfs
+      - name: shares
+      - name: historic_candles1
   - name: finance_marker
     database: invest
     schema: finance_marker
     tables:
       - name: ratios
+  - name: cbr
+    database: invest
+    schema: cbr
+    tables:
+      - name: Bliquidity
+      - name: DragMetDynamic
+      - name: GetCursOnDate
+      - name: KeyRate
+      - name: MainInfoXML
+      - name: Ruonia
