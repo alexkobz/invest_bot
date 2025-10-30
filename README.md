@@ -21,8 +21,8 @@ The goal is to create a scalable, testable, and extensible foundation for both *
 ## ⚙️ Installation
 
 ```bash
-git clone https://github.com/yourname/quant-hft.git
-cd quant-hft
+git clone https://github.com/alexkobz/invest_bot.git
+cd invest_bot
 
 # Create environment
 python -m venv .venv
