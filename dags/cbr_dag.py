@@ -1,10 +1,11 @@
 from airflow import DAG
-from airflow.providers.standard.operators.empty import EmptyOperator
-from airflow.providers.standard.operators.python import PythonOperator
-from airflow.sdk import TaskGroup
+from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import PythonOperator
+from airflow.utils.task_group import TaskGroup
 from datetime import datetime
 
 from utils.DbtOperator import DbtOperator
+# from src.sources.CBR.CBR_Soap import CBR_Soap
 from src.sources.CBR.KeyRate import KeyRate
 from src.sources.CBR.GetCursOnDate import GetCursOnDate
 from src.sources.CBR.DragMetDynamic import DragMetDynamic
@@ -23,7 +24,9 @@ with DAG(
 ) as dag:
 
     t1_start = EmptyOperator(task_id='start')
-
+    # t2_KeyRate = PythonOperator(
+    #             task_id='api_KeyRate',
+    #             python_callable=CBR_Soap().get_discounts)
     with TaskGroup('KeyRate') as t2_KeyRate:
         t1_api_KeyRate = PythonOperator(
             task_id='api_KeyRate',
