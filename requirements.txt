@@ -13,8 +13,9 @@ xmltodict
 zeep
 clickhouse-driver
 SQLAlchemy==1.4.54
+pysimplesoap
 dataclasses_json
-pandas==2.3.3
+pandas==2.1.4
 pendulum
 kafka-python
 python-dotenv
