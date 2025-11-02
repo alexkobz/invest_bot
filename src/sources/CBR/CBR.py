@@ -35,7 +35,9 @@ class CBR(ABC):
             f"postgresql://"
             f"{os.environ['POSTGRES_USER']}:"
             f"{os.environ['POSTGRES_PASSWORD']}@"
-            f"{os.environ['POSTGRES_HOST']}:"
+            # f"{os.environ['POSTGRES_HOST']}:"
+            f"host.docker.internal:"
+            # f"172.18.0.1:"
             f"{os.environ['POSTGRES_PORT']}/"
             f"{os.environ['POSTGRES_DATABASE']}")
         self.engine = create_engine(

@@ -43,6 +43,8 @@
 #                                Default: ''
 #
 # Feel free to modify this file to suit your needs.
+version: "3.9"
+
 ---
 x-airflow-common:
   &airflow-common
@@ -90,8 +92,14 @@ x-airflow-common:
       condition: service_healthy
     postgres:
       condition: service_healthy
-#  dns:
-#    - 8.8.8.8
+  networks:
+    - default
+  dns:
+    - 8.8.8.8
+    - 1.1.1.1
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+    - "host.docker.internal:172.18.0.1"
 
 services:
   postgres:
@@ -307,8 +315,10 @@ services:
       retries: 5
       start_period: 5s
     restart: always
+    network_mode: bridge
     extra_hosts:
-        - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.18.0.1"
 
   clickhouse-server:
     image: clickhouse/clickhouse-server:24.3.6
@@ -330,6 +340,10 @@ services:
       - "5521:5521"
     env_file:
       - ${AIRFLOW_PROJ_DIR:-..}/.env
+
+networks:
+  default:
+    driver: bridge
 
 volumes:
   postgres-db-volume:
