@@ -13,8 +13,7 @@ with DAG(
     dag_id='moex_stock_shares',
     description='A pipeline with downloading dimension info of shares trading on MOEX',
     start_date=datetime(2024, 12, 27),
-    # schedule="0 0 * * *",
-    schedule=None,
+    schedule="10 0 * * *",
     catchup=False,
 ) as dag:
 
