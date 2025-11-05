@@ -63,7 +63,7 @@ x-airflow-common:
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-    AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
@@ -75,7 +75,8 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
-    # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+#    AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Moscow
     PYTHONPATH: '/opt/airflow'
   volumes:
     - invest_data:/opt/airflow/data
@@ -99,7 +100,6 @@ x-airflow-common:
     - 1.1.1.1
   extra_hosts:
     - "host.docker.internal:host-gateway"
-    - "host.docker.internal:172.18.0.1"
 
 services:
   postgres:
@@ -318,7 +318,6 @@ services:
     network_mode: bridge
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "host.docker.internal:172.18.0.1"
 
   clickhouse-server:
     image: clickhouse/clickhouse-server:24.3.6

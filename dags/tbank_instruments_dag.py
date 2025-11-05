@@ -12,8 +12,7 @@ with DAG(
     dag_id='tbank_instruments',
     description='A pipeline with downloading dimension info of instruments from Tbank',
     start_date=datetime(2025, 10, 14),
-    # schedule="0 0 * * *",
-    schedule=None,
+    schedule="10 0 * * *",
     catchup=False,
 ) as dag:
     

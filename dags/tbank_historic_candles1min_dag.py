@@ -11,8 +11,7 @@ with DAG(
     dag_id='tbank_historic_candles1min',
     description='A pipeline with downloading historic 1 minute candles from Tbank',
     start_date=datetime(2025, 10, 14),
-    # schedule="0 0 * * *",
-    schedule=None,
+    schedule="15 0 * * *",
     catchup=False,
 ) as dag:
     

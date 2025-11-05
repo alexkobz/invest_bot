@@ -5,7 +5,6 @@ from airflow.utils.task_group import TaskGroup
 from datetime import datetime
 
 from utils.DbtOperator import DbtOperator
-# from src.sources.CBR.CBR_Soap import CBR_Soap
 from src.sources.CBR.KeyRate import KeyRate
 from src.sources.CBR.GetCursOnDate import GetCursOnDate
 from src.sources.CBR.DragMetDynamic import DragMetDynamic
@@ -18,15 +17,12 @@ with DAG(
     dag_id='cbr',
     description='A pipeline with downloading cbr main indicators',
     start_date=datetime(2024, 12, 27),
-    # schedule="0 0 * * *",
-    schedule=None,
+    schedule="15 0 * * *",
     catchup=False,
 ) as dag:
 
     t1_start = EmptyOperator(task_id='start')
-    # t2_KeyRate = PythonOperator(
-    #             task_id='api_KeyRate',
-    #             python_callable=CBR_Soap().get_discounts)
+
     with TaskGroup('KeyRate') as t2_KeyRate:
         t1_api_KeyRate = PythonOperator(
             task_id='api_KeyRate',
