@@ -19,9 +19,6 @@ models:
     staging:
       +schema: staging
       +materialized: view
-    history:
-      +schema: history
-      +materialized: table
     core:
       +schema: core
       +materialized: table

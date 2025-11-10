@@ -92,12 +92,12 @@ with DAG(
     finish = EmptyOperator(task_id='finish')
 
     (
-            t1_start >>
-            t2_KeyRate >>
-            t3_GetCursOnDate >>
-            t4_DragMetDynamic >>
-            t5_Ruonia >>
-            t6_Bliquidity >>
-            t7_MainInfoXML >>
-            finish
+        t1_start >>
+        t2_KeyRate >>
+        t3_GetCursOnDate >>
+        t4_DragMetDynamic >>
+        t5_Ruonia >>
+        t6_Bliquidity >>
+        t7_MainInfoXML >>
+        finish
     )

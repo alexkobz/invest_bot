@@ -340,6 +340,16 @@ services:
     env_file:
       - ${AIRFLOW_PROJ_DIR:-..}/.env
 
+  pgadmin:
+    image: dpage/pgadmin4
+    env_file:
+      - ${AIRFLOW_PROJ_DIR:-..}/.env
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+
 networks:
   default:
     driver: bridge
@@ -352,3 +362,4 @@ volumes:
     external: true
   invest_data:
     external: true
+  pgadmin_data:

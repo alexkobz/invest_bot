@@ -25,16 +25,11 @@ with DAG(
         task_id='tbank_historic_candles1min',
         model='fct_tbank_historic_candles1min')
 
-    # t4_replication_tbank_candles1min = ReplicationClickHouseOperator(
-    #     task_id='replication_tbank_candles1min',
-    #     filename='tbank_candles1min')
-
-    t5_finish = EmptyOperator(task_id='finish')
+    finish = EmptyOperator(task_id='finish')
  
     (
         t1_start >>
         t2_api_tbank_historic_candles1min >>
         t3_tbank_historic_candles1min >>
-        # t4_replication_tbank_candles1min >>
-        t5_finish
+        finish
     )

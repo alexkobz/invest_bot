@@ -45,16 +45,11 @@ with DAG(
 
         t1_api_moex_stock_shares >> t2_moex_shares_snapshot
 
-    t4_replication_shares = ReplicationClickHouseOperator(
-        task_id='replication_shares',
-        filename='shares')
-
-    t5_finish = EmptyOperator(task_id='finish')
+    finish = EmptyOperator(task_id='finish')
 
     (
         t1_start >>
         t2_moex_boards >>
         t3_moex_stock_shares >>
-        t4_replication_shares >>
-        t5_finish
+        finish
     )

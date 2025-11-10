@@ -3,4 +3,4 @@ TRUNCATE TABLE shares;
 INSERT INTO shares
 SELECT
    *
-FROM pg_shares
+FROM pg_moex_shares

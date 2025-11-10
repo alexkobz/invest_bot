@@ -36,7 +36,7 @@ with DAG(
         task_id='replication_moex_prices',
         filename='moex_prices')
 
-    t6_finish = EmptyOperator(task_id='finish')
+    finish = EmptyOperator(task_id='finish')
 
     (
         t1_start >>
@@ -44,5 +44,5 @@ with DAG(
         t3_hst_moex_prices >>
         t4_fct_moex_prices >>
         t5_replication_moex_prices >>
-        t6_finish
+        finish
     )
