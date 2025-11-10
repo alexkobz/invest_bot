@@ -55,12 +55,12 @@ with DAG(
         
         t1_api_tbank_shares >> t2_tbank_shares
 
-    t5_finish = EmptyOperator(task_id='finish')
+    finish = EmptyOperator(task_id='finish')
 
     (
         t1_start >>
         t2_bonds >>
         t3_etfs >>
         t4_shares >>
-        t5_finish
+        finish
     )
