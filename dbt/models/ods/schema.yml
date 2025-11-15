@@ -1,11 +1,11 @@
 version: 2
 
 models:
-  - name: fct_fm_ratios
+  - name: fm_ratios
     constraints:
       - type: primary_key
         columns: ['year', 'month', 'period', 'type', 'code', 'active']
-  - name: fct_fundamentals
+  - name: girbo_fundamentals
     description: "Table of fundamentals of russian companies from https://bo.nalog.ru/"
     columns:
       - name: inn
@@ -15,7 +15,7 @@ models:
     constraints:
       - type: primary_key
         columns: [ "inn", "year" ]
-  - name: fct_moex_prices
+  - name: moex_prices
     description: "Fact table of prices from moex"
     columns:
       - name: boardid
@@ -46,31 +46,27 @@ models:
     config:
       materialized: table
       tags: [ 'sql' ]
-  - name: fct_tbank_historic_candles1min
-    constraints:
-      - type: primary_key
-        columns: ['year', 'month', 'period', 'type', 'code', 'active']
-  - name: v_shares
+  - name: tbank_historic_candles1min
+#    constraints:
+#      - type: primary_key
+#        columns: ['year', 'month', 'period', 'type', 'code', 'active']
+  - name: cbr_bank_liquidity
     config:
-      materialized: view
+      materialized: table
       tags: [ 'sql' ]
-  - name: bank_liquidity
+  - name: cbr_inflation
     config:
-      materialized: view
+      materialized: table
       tags: [ 'sql' ]
-  - name: inflation
+  - name: cbr_key_rate
     config:
-      materialized: view
+      materialized: table
       tags: [ 'sql' ]
-  - name: key_rate
+  - name: cbr_precious_metals
     config:
-      materialized: view
+      materialized: table
       tags: [ 'sql' ]
-  - name: precious_metals
+  - name: cbr_rub_rate
     config:
-      materialized: view
-      tags: [ 'sql' ]
-  - name: rub_rate
-    config:
-      materialized: ruonia
+      materialized: table
       tags: [ 'sql' ]

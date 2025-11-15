@@ -32,10 +32,6 @@ with DAG(
         task_id='fct_moex_prices',
         model='fct_moex_prices')
 
-    t5_replication_moex_prices = ReplicationClickHouseOperator(
-        task_id='replication_moex_prices',
-        filename='moex_prices')
-
     finish = EmptyOperator(task_id='finish')
 
     (
@@ -43,6 +39,5 @@ with DAG(
         t2_api_moex_prices >>
         t3_hst_moex_prices >>
         t4_fct_moex_prices >>
-        t5_replication_moex_prices >>
         finish
     )

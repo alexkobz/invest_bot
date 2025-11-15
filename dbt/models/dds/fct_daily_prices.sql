@@ -3,33 +3,47 @@
     materialized='incremental',
     incremental_strategy='merge',
     unique_key=['secid', 'boardid', 'tradedate'],
-    merge_update_columns=['numtrades', 'value', 'open', 'low', 'high', 'legalcloseprice', 'waprice', 'close',
-    'volume', 'marketprice2', 'marketprice3', 'admittedquote', 'mp2valtrd', 'marketprice3tradesvalue',
-    'admittedvalue', 'waval', 'tradingsession', 'trendclspr', 'trade_session_date']
+    merge_update_columns=['figi', 'open', 'close', 'low', 'high', 'volume']
   )
 }}
+WITH moex AS (
+    SELECT DISTINCT ON (secid, boardid, tradedate)
+        secid,
+        boardid,
+        tradedate,
+        "value",
+        "open",
+        "close",
+        low,
+        high,
+        volume
+    FROM {{ ref('moex_prices') }}
+    ORDER BY secid, boardid, tradedate, volume DESC
+)
+, tbank AS (
+    SELECT DISTINCT ON (ticker, "date")
+        c.figi,
+        c."date",
+        c.volume,
+        c."open",
+        c."close",
+        c."low",
+        c."high",
+        UPPER(s.ticker) AS ticker
+    FROM {{ ref('tbank_historic_candles1min') }} c
+    LEFT JOIN {{ ref('tbank_shares') }} s ON c.figi = s.figi
+    WHERE COALESCE(s.ticker, '') != ''
+    ORDER BY ticker, "date", "timestamp" DESC
+)
 SELECT
-	UPPER(secid) secid,
-	UPPER(boardid) boardid,
-	tradedate::date AS tradedate,
-	NULLIF(numtrades, '')::bigint numtrades,
-	NULLIF(value, '')::float "value",
-	NULLIF(open, '')::float "open",
-	NULLIF(close, '')::float "close",
-	NULLIF(low, '')::float low,
-	NULLIF(high, '')::float high,
-	NULLIF(legalcloseprice, '')::float AS legalcloseprice,
-	NULLIF(waprice, '')::float waprice,
-	NULLIF(volume, '')::bigint volume,
-	NULLIF(marketprice2, '')::float marketprice2,
-    NULLIF(marketprice3, '')::float marketprice3,
-    NULLIF(admittedquote, '')::float admittedquote,
-	NULLIF(mp2valtrd, '')::float mp2valtrd,
-	NULLIF(marketprice3tradesvalue, '')::float marketprice3tradesvalue,
-	NULLIF(admittedvalue, '')::float admittedvalue,
-	NULLIF(waval, '')::float waval,
-	NULLIF(tradingsession, '')::bigint tradingsession,
-	currencyid currencyid,
-	NULLIF(trendclspr, '')::float trendclspr,
-	NULLIF(trade_session_date, '')::date AS trade_session_date
-FROM {{ ref('stg_moex_prices') }}
+	COALESCE(m.secid, t.ticker, '') AS secid,
+	COALESCE(m.boardid, 'TQBR') boardid,
+	COALESCE(m.tradedate, t."date") AS tradedate,
+	COALESCE(t.figi, '') AS figi,
+	COALESCE(m."open", t."open") AS "open",
+	COALESCE(m."close", t."close") AS "close",
+	COALESCE(m.low, t.low) AS low,
+	COALESCE(m.high, t.high) AS high,
+	COALESCE(m.volume, t.volume) AS volume
+FROM moex m
+FULL JOIN tbank t on m.secid = t.ticker AND m.tradedate = t."date"

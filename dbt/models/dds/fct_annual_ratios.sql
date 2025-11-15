@@ -47,4 +47,4 @@ SELECT
     roe,
     roic,
     ros
-FROM {{ ref('stg_fm_ratios') }}
+FROM {{ ref('fm_ratios') }}

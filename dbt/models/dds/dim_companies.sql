@@ -1,6 +1,9 @@
 {{
   config(
-    materialized='view'
+    materialized='incremental',
+    incremental_strategy='merge',
+    unique_key=['secid', 'boardid', 'tradedate'],
+    merge_update_columns=['figi', 'open', 'close', 'low', 'high', 'volume']
   )
 }}
 SELECT
