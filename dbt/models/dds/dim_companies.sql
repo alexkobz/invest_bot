@@ -2,62 +2,25 @@
   config(
     materialized='incremental',
     incremental_strategy='merge',
-    unique_key=['secid', 'boardid', 'tradedate'],
-    merge_update_columns=['figi', 'open', 'close', 'low', 'high', 'volume']
+    unique_key=['id'],
+    merge_update_columns=['name_short_ru', 'name_short_en', 'inn', 'ogrn', 'state_reg_num', 'kpp',
+    'okpo', 'bik', 'opf_code', 'okato_code', 'lei_code', 'auth_capital', 'address']
   )
 }}
-SELECT
-    m.secid,
-    m.boardid,
-    coalesce(nullif(m.issuesize, 0), t.issue_size, 0) AS issuesize,
-    m.shortname,
-    m.prevprice,
-    m.lotsize,
-    m.facevalue,
-    m.status,
-    m.boardname,
-    m.decimals,
-    m.secname,
-    m.remarks,
-    m.marketcode,
-    m.instrid,
-    m.sectorid,
-    m.minstep,
-    m.prevwaprice,
-    m.faceunit,
-    m.prevdate,
-    m.isin,
-    m.latname,
-    m.regnumber,
-    m.prevlegalcloseprice,
-    m.currencyid,
-    m.sectype,
-    m.listlevel,
-    m.settledate,
-    t.figi,
-    t.class_code,
-    t.lot,
-    t.exchange,
-    t.ipo_date,
-    t.country_of_risk,
-    t.country_of_risk_name,
-    t.sector,
-    t.issue_size_plan,
-    t.otc_flag,
-    t.buy_available_flag,
-    t.sell_available_flag,
-    t.div_yield_flag,
-    t.share_type,
-    t.api_trade_available_flag,
-    t.real_exchange,
-    t.for_iis_flag,
-    t.for_qual_investor_flag,
-    t.weekend_flag,
-    t.blocked_tca_flag,
-    t.liquidity_flag,
-    t.first_1min_candle_date,
-    t.first_1day_candle_date
-FROM {{ ref('moex_shares') }} m
-LEFT JOIN {{ ref('tbank_shares') }} t
-    ON m.secid = UPPER(t.ticker)
-WHERE m.dbt_valid_to IS NULL
+SELECT DISTINCT ON (basis_company_id)
+    basis_company_id AS id,
+    name_short_ru,
+    name_short_en,
+    inn,
+    ogrn,
+    state_reg_num,
+    kpp,
+    okpo,
+    bik,
+    opf_code,
+    okato_code,
+    lei_code,
+    auth_capital,
+    address
+FROM {{ ref('moex_companies') }}
+ORDER BY id, update_time

@@ -94,3 +94,9 @@ sources:
       - name: KeyRate
       - name: MainInfoXML
       - name: Ruonia
+  - name: rudata
+    database: invest
+    schema: rudata
+    tables:
+      - name: MoexStocks
+      - name: Emitents

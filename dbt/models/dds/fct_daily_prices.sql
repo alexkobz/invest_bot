@@ -18,6 +18,13 @@ WITH moex AS (
         high,
         volume
     FROM {{ ref('moex_prices') }}
+
+    {% if is_incremental() %}
+
+    WHERE tradedate > (SELECT MAX(tradedate) FROM {{ this }} )
+
+    {% endif %}
+
     ORDER BY secid, boardid, tradedate, volume DESC
 )
 , tbank AS (
@@ -33,6 +40,13 @@ WITH moex AS (
     FROM {{ ref('tbank_historic_candles1min') }} c
     LEFT JOIN {{ ref('tbank_shares') }} s ON c.figi = s.figi
     WHERE COALESCE(s.ticker, '') != ''
+
+    {% if is_incremental() %}
+
+    AND c."date" > (SELECT MAX(tradedate) FROM {{ this }} )
+
+    {% endif %}
+
     ORDER BY ticker, "date", "timestamp" DESC
 )
 SELECT

@@ -7,7 +7,6 @@
       updated_at='update_time'
     )
 }}
-
 SELECT
     cast(basis_company_id as bigint) basis_company_id,
     name_short_ru,
@@ -24,7 +23,9 @@ SELECT
     state_reg_num,
     state_reg_date,
     state_reg_authority_name_short_ru,
-    cmp_code_fcsm, kpp, kpp_date,
+    cmp_code_fcsm,
+    kpp,
+    kpp_date,
     kpp_authority_name_short_ru,
     okpo,
     bik,

@@ -1,60 +1,71 @@
 {{
   config(
-    materialized='view'
+    materialized='incremental',
+    incremental_strategy='merge',
+    unique_key=['ticker'],
+    merge_update_columns=['shortname', 'latname', 'secname', 'isin', 'issuesize', 'lotsize',
+    'facevalue', 'faceunit', 'currency', 'regnumber', 'figi', 'ipo_date', 'country_code',
+    'sector', 'emitent_inn']
   )
 }}
+WITH moex AS (
+    SELECT DISTINCT ON (secid)
+        secid,
+        shortname,
+        latname,
+        secname,
+        UPPER(isin) isin,
+        issuesize,
+        lotsize,
+        facevalue,
+        UPPER(faceunit) faceunit,
+        regnumber,
+        UPPER(currencyid) currencyid
+    from {{ ref('moex_shares') }}
+    WHERE dbt_valid_to IS NULL AND boardid = 'TQBR'
+    ORDER BY secid, dbt_valid_from DESC
+)
+, tbank AS (
+    SELECT DISTINCT ON (ticker)
+        figi,
+        ticker,
+        UPPER(isin) isin,
+        lot,
+        UPPER(currency) currency,
+        name,
+        ipo_date,
+        issue_size,
+        country_of_risk,
+        sector
+    FROM {{ ref('tbank_shares') }}
+    WHERE dbt_valid_to IS NULL
+    ORDER BY ticker, dbt_valid_from DESC
+)
+, rudata AS (
+    SELECT DISTINCT ON (secid)
+        secid,
+        emitent_inn
+    FROM {{ ref('rudata_stocks') }}
+    WHERE dbt_valid_to IS NULL
+    ORDER BY secid, dbt_valid_from DESC
+)
 SELECT
-    m.secid,
-    m.boardid,
-    coalesce(nullif(m.issuesize, 0), t.issue_size, 0) AS issuesize,
+    COALESCE(m.secid, t.ticker) ticker,
     m.shortname,
-    m.prevprice,
-    m.lotsize,
-    m.facevalue,
-    m.status,
-    m.boardname,
-    m.decimals,
+    COALESCE(m.latname, t.name, '') AS latname,
     m.secname,
-    m.remarks,
-    m.marketcode,
-    m.instrid,
-    m.sectorid,
-    m.minstep,
-    m.prevwaprice,
-    m.faceunit,
-    m.prevdate,
-    m.isin,
-    m.latname,
+    COALESCE(m.isin, t.isin, '') AS isin,
+    COALESCE(m.issuesize, t.issue_size, 0) AS issuesize,
+    COALESCE(m.lotsize, t.lot, 0) AS lotsize,
+    COALESCE(m.facevalue, 0.0) AS facevalue,
+    m.faceunit AS faceunit,
+    COALESCE(m.currencyid, t.currency, '') AS currency,
     m.regnumber,
-    m.prevlegalcloseprice,
-    m.currencyid,
-    m.sectype,
-    m.listlevel,
-    m.settledate,
-    t.figi,
-    t.class_code,
-    t.lot,
-    t.exchange,
-    t.ipo_date,
-    t.country_of_risk,
-    t.country_of_risk_name,
-    t.sector,
-    t.issue_size_plan,
-    t.otc_flag,
-    t.buy_available_flag,
-    t.sell_available_flag,
-    t.div_yield_flag,
-    t.share_type,
-    t.api_trade_available_flag,
-    t.real_exchange,
-    t.for_iis_flag,
-    t.for_qual_investor_flag,
-    t.weekend_flag,
-    t.blocked_tca_flag,
-    t.liquidity_flag,
-    t.first_1min_candle_date,
-    t.first_1day_candle_date
-FROM {{ ref('moex_shares') }} m
-LEFT JOIN {{ ref('tbank_shares') }} t
-    ON m.secid = UPPER(t.ticker)
-WHERE m.dbt_valid_to IS NULL
+    t.figi AS figi,
+    t.ipo_date AS ipo_date,
+    COALESCE(t.country_of_risk, '') AS country_code,
+    COALESCE(t.sector, '') AS sector,
+    r.emitent_inn
+FROM moex m
+FULL JOIN tbank t ON m.secid = t.ticker
+LEFT JOIN rudata r ON m.secid = r.secid
