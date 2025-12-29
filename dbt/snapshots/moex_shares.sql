@@ -7,8 +7,7 @@
       check_cols=['secid', 'boardid', 'issuesize']
     )
 }}
-
-select DISTINCT ON (md5(secid || boardid || coalesce(issuesize::text, '')))
+select DISTINCT ON (secid, boardid, issuesize)
     md5(secid || boardid || coalesce(issuesize::text, '')) id,
     upper(secid) as secid,
     upper(boardid) as boardid,

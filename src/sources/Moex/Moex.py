@@ -1,22 +1,41 @@
 from __future__ import annotations
 
 import os
-from airflow.exceptions import AirflowSkipException
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
 from datetime import date, timedelta
+
 import pandas as pd
 import xmltodict
-from .MoexDocs import *
-from .iss_client import MicexAuth, Config
-from src.utils.path import Path, get_dotenv_path
-from src.sources.Moex.MoexAuthenticationError import MoexAuthenticationError
+from airflow.exceptions import AirflowSkipException
+from dotenv import load_dotenv
+
 from src.logger.Logger import Logger
+from src.sources.Moex.iss_client import Config, MicexAuth
+from src.sources.Moex.MoexAuthenticationError import MoexAuthenticationError
+from src.utils.path import Path, get_dotenv_path
 from src.utils.retries import retry
 
-SCHEMA = 'moex'
+from ...postgres.StageSaver import StageSaver
+from .MoexDocs import *
+
+SCHEMA: str = 'moex'
 
 logger = Logger()
+
+dotenv_path: Path = get_dotenv_path()
+load_dotenv(dotenv_path=dotenv_path)
+
+
+class MoexStageSaver(StageSaver):
+    def __init__(self, **kwargs):
+        super().__init__(schema=SCHEMA, **kwargs)
+
+    def before_save(self, df: pd.DataFrame) -> pd.DataFrame:
+        if df.empty:
+            raise AirflowSkipException("Skipping this task as DataFrame is empty")
+        df.columns = df.columns.str.lstrip('@')
+        df.columns = df.columns.str.lower()
+        return df
+
 
 class Moex:
 
@@ -28,7 +47,6 @@ class Moex:
         self._instance.__initialized = True
         self.config = None
         self.auth = None
-        self.engine = None
         self._init_iss()
 
     @staticmethod
@@ -39,29 +57,16 @@ class Moex:
         return cls._instance
 
     def _init_iss(self):
-        dotenv_path: Path = get_dotenv_path()
-        load_dotenv(dotenv_path=dotenv_path)
         self.config: Config = Config(
             user=os.environ["EMAIL_LOGIN"],
             password=os.environ["EMAIL_PASSWORD"],
             proxy_url='')
         self.auth: MicexAuth = MicexAuth(self.config)
         if self.auth.is_real_time():
-            DATABASE_URI: str = (
-                f"postgresql://"
-                f"{os.environ['POSTGRES_USER']}:"
-                f"{os.environ['POSTGRES_PASSWORD']}@"
-                f"{os.environ['POSTGRES_HOST']}:"
-                f"{os.environ['POSTGRES_PORT']}/"
-                f"{os.environ['POSTGRES_DATABASE']}")
-            self.engine = create_engine(
-                DATABASE_URI,
-                connect_args={"options": f"-csearch_path={SCHEMA}"}
-            )
+            logger.info(f"Moex auth is successfully initialized")
         else:
             logger.exception(f"{str(MoexAuthenticationError)}")
             raise MoexAuthenticationError()
-        logger.info(f"Moex auth is successfully initialized")
         if self.config.proxy_url:
             self.opener = urllib.request.build_opener(
                 urllib.request.ProxyHandler({"http": self.config.proxy_url}),
@@ -77,60 +82,44 @@ class Moex:
 
     @retry(tries=5, delay=60)
     def _send_request(self, url: str) -> str:
-        response = self.opener.open(url)
+        response = self.opener.open(url, timeout=60)
         if response.code == 200:
             return response.read().decode('utf-8')
         else:
             logger.exception(response.status_code)
             raise AirflowSkipException(response.status_code)
 
-    def _finish_get_data(self, df: pd.DataFrame, table_name: str) -> bool:
-        if df.empty:
-            raise AirflowSkipException("Skipping this task as DataFrame is empty")
-        try:
-            df.columns = df.columns.str.lstrip('@')
-            df.columns = df.columns.str.lower()
-            self.engine.execute(f'''TRUNCATE TABLE "{table_name}"''' , autocommit=True)
-            df.to_sql(
-                name=table_name,
-                con=self.engine,
-                if_exists='append',
-                index=False)
-            logger.info(f"{table_name} downloaded successfully")
-            return True
-        except Exception as e:
-            logger.exception(f"{table_name} failed to download due to\n{e}")
-            return False
-
-    def getStockSharesSecurities(self) -> pd.DataFrame:
+    def _getStockSharesSecurities(self) -> list[dict]:
         url = StockSharesSecurities().url()
         res = self._send_request(url)
         res = xmltodict.parse(res)
-        data = res['document']['data']
-        try:
-            securities = data[0]
-        except IndexError:
-            logger.exception('No securities found')
-            return pd.DataFrame()
+        data: list[dict] = res['document']['data']
+        return data
+
+    @MoexStageSaver(table_name='StockSharesSecurities')
+    def getStockSharesSecurities(self) -> pd.DataFrame:
+        data = self._getStockSharesSecurities()
+        securities = data[0]
         securities_df = pd.DataFrame(securities['rows']['row'])
-        self._finish_get_data(securities_df, 'StockSharesSecurities')
-        try:
-            marketdata = data[1]
-            marketdata_df = pd.DataFrame(marketdata['rows']['row'])
-            self._finish_get_data(marketdata_df, 'StockSharesSecuritiesMarketData')
-        except IndexError:
-            logger.exception('No marketdata found')
         return securities_df
 
+    @MoexStageSaver(table_name='StockSharesSecuritiesMarketData')
+    def getStockSharesSecuritiesMarketData(self) -> pd.DataFrame:
+        data = self._getStockSharesSecurities()
+        marketdata = data[1]
+        marketdata_df = pd.DataFrame(marketdata['rows']['row'])
+        return marketdata_df
+
+    @MoexStageSaver(table_name='StockSharesBoards')
     def getStockSharesBoards(self) -> pd.DataFrame:
         url = StockSharesBoards().url()
         res = self._send_request(url)
         res = xmltodict.parse(res)
         data = res['document']['data']
         df = pd.DataFrame(data['rows']['row'])
-        self._finish_get_data(df, 'StockSharesBoards')
         return df
 
+    @MoexStageSaver(table_name='StockSharesTQBRTrades')
     def getStockSharesTQBRTrades(self) -> pd.DataFrame:
         limit = 5000
         start = 0
@@ -147,9 +136,9 @@ class Moex:
             except:
                 break
             trades_df = pd.concat([trades_df, df])
-        self._finish_get_data(trades_df, 'StockSharesTQBRTrades')
         return trades_df
 
+    @MoexStageSaver(table_name='Companies')
     def getCompanies(self) -> pd.DataFrame:
         """Companies Russia"""
         limit = 1000
@@ -167,7 +156,6 @@ class Moex:
             except:
                 break
             companies_df = pd.concat([companies_df, df])
-        self._finish_get_data(companies_df, 'Companies')
         return companies_df
 
     def _getHistoryStockSharesSecurities(self, param_date: date = None) -> pd.DataFrame:
@@ -193,62 +181,61 @@ class Moex:
             securities_df = pd.concat([securities_df, df])
         return securities_df
 
+    @MoexStageSaver(table_name='HistoryStockSharesSecurities')
     def getHistoryStockSharesSecurities(self, param_date: date = None) -> pd.DataFrame:
         securities_df = self._getHistoryStockSharesSecurities(param_date)
-        self._finish_get_data(securities_df, 'HistoryStockSharesSecurities')
         return securities_df
 
-
+    @MoexStageSaver(table_name='HistoryStockSharesSecurities')
     def getHistoryStockSharesSecuritiesCurrentMonth(self) -> pd.DataFrame:
         """Prices for current month"""
         res = pd.DataFrame()
         for param_date in pd.date_range(date.today().replace(day=1), date.today()):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
             res = pd.concat([res, securities_df])
-        self._finish_get_data(res, 'HistoryStockSharesSecurities')
         return res
 
+    @MoexStageSaver(table_name='HistoryStockSharesSecurities')
     def getHistoryStockSharesSecuritiesLastMonth(self) -> pd.DataFrame:
         """Prices for last month"""
         res = pd.DataFrame()
         for param_date in pd.date_range(date.today() - timedelta(days=30), date.today()):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
             res = pd.concat([res, securities_df])
-        self._finish_get_data(res, 'HistoryStockSharesSecurities')
         return res
 
+    @MoexStageSaver(table_name='HistoryStockSharesSecurities')
     def getHistoryStockSharesSecuritiesCurrentYear(self) -> pd.DataFrame:
         """Prices for current year"""
         res = pd.DataFrame()
         for param_date in pd.date_range(date(date.today().year, 1, 1), date.today()):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
             res = pd.concat([res, securities_df])
-        self._finish_get_data(res, 'HistoryStockSharesSecurities')
         return res
 
+    @MoexStageSaver(table_name='HistoryStockSharesSecurities')
     def getHistoryStockSharesSecuritiesLastYear(self) -> pd.DataFrame:
         """Prices for last year"""
         res = pd.DataFrame()
         for param_date in pd.date_range(date.today() - timedelta(days=365), date.today()):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
             res = pd.concat([res, securities_df])
-        self._finish_get_data(res, 'HistoryStockSharesSecurities')
         return res
 
+    @MoexStageSaver(table_name='HistoryStockSharesSecurities')
     def getHistoryStockSharesSecuritiesYear(self, year: int) -> pd.DataFrame:
         """Prices for distinct year"""
         res = pd.DataFrame()
         for param_date in pd.date_range(date(year, 1, 1), date(year, 12, 31)):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
             res = pd.concat([res, securities_df])
-        self._finish_get_data(res, 'HistoryStockSharesSecurities')
         return res
 
+    @MoexStageSaver(table_name='HistoryStockSharesSecurities')
     def getHistoryStockSharesSecuritiesRange(self, start: date, end: date) -> pd.DataFrame:
         """Prices for range of dates"""
         res = pd.DataFrame()
         for param_date in pd.date_range(start, end):
             securities_df = self._getHistoryStockSharesSecurities(param_date)
             res = pd.concat([res, securities_df])
-        self._finish_get_data(res, 'HistoryStockSharesSecurities')
         return res

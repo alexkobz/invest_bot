@@ -1,3 +1,3 @@
 SELECT
     *
-FROM {{ source('tbank', 'historic_candles1') }}
+FROM {{ source('tbank', 'Candles1MinYesterday') }}

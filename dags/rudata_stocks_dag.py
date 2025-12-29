@@ -1,15 +1,14 @@
+from datetime import datetime
+
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
-from datetime import datetime
 
-from utils.ReplicationClickHouseOperator import ReplicationClickHouseOperator
-from utils.DbtOperator import DbtOperator
 from src.sources.Moex.Moex import Moex
-from src.sources.Rudata.RuDataMethod import Account, MoexStocks, Emitents
-
-
+from src.sources.Rudata.RuDataMethod import Account, Emitents, MoexStocks
+from utils.DbtOperator import DbtOperator
+from utils.ReplicationClickHouseOperator import ReplicationClickHouseOperator
 
 with DAG(
     dag_id='rudata_stocks',

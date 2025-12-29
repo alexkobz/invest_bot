@@ -1,76 +1,23 @@
 version: 2
 
 models:
+  - name: cbr_data
+    constraints:
+      - type: primary_key
+        columns: ['date']
   - name: dim_companies
-#    constraints:
-#      - type: primary_key
-#        columns: ['year', 'month', 'period', 'type', 'code', 'active']
+    constraints:
+      - type: primary_key
+        columns: ['id']
   - name: dim_shares
-#    description: "Table of fundamentals of russian companies from https://bo.nalog.ru/"
-#    columns:
-#      - name: inn
-#        description: "INN of organization"
-#      - name: year
-#        description: "year of reporting"
-#    constraints:
-#      - type: primary_key
-#        columns: [ "inn", "year" ]
+    constraints:
+      - type: primary_key
+        columns: ['ticker']
   - name: fct_annual_ratios
-#    description: "Fact table of prices from moex"
-#    columns:
-#      - name: boardid
-#      - name: tradedate
-#      - name: secid
-#      - name: numtrades
-#      - name: value
-#      - name: open
-#      - name: low
-#      - name: high
-#      - name: legalcloseprice
-#      - name: waprice
-#      - name: close
-#      - name: volume
-#      - name: marketprice2
-#      - name: marketprice3
-#      - name: admittedquote
-#      - name: mp2valtrd
-#      - name: marketprice3tradesvalue
-#      - name: admittedvalue
-#      - name: waval
-#      - name: tradingsession
-#      - name: trendclspr
-#      - name: trade_session_date
-#    constraints:
-#      - type: primary_key
-#        columns: ['secid', 'boardid', 'tradedate']
-#    config:
-#      materialized: table
-#      tags: [ 'sql' ]
+    constraints:
+      - type: primary_key
+        columns: ["inn", "year", "ticker"]
   - name: fct_daily_prices
-#    constraints:
-#      - type: primary_key
-#        columns: ['year', 'month', 'period', 'type', 'code', 'active']
-#  - name: v_shares
-#    config:
-#      materialized: view
-#      tags: [ 'sql' ]
-#  - name: bank_liquidity
-#    config:
-#      materialized: view
-#      tags: [ 'sql' ]
-#  - name: inflation
-#    config:
-#      materialized: view
-#      tags: [ 'sql' ]
-#  - name: key_rate
-#    config:
-#      materialized: view
-#      tags: [ 'sql' ]
-#  - name: precious_metals
-#    config:
-#      materialized: view
-#      tags: [ 'sql' ]
-#  - name: rub_rate
-#    config:
-#      materialized: ruonia
-#      tags: [ 'sql' ]
+    constraints:
+      - type: primary_key
+        columns: ['secid', 'boardid', 'tradedate']

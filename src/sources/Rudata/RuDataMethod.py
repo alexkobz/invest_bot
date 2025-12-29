@@ -1,11 +1,15 @@
 import os
+from datetime import datetime as dt
+from datetime import timedelta
 from pathlib import Path
 from time import sleep
 from typing import Dict, List
+
 import pandas as pd
 import requests
 from dotenv import load_dotenv
 
+from src.sources.Rudata.RuDataDF import LIMIT, RuDataDF, RuDataPagesDF, RuDataStageSaver
 from src.utils.divide_chunks import divide_chunks
 # from src.utils.get_date import (
 #     dt.today().strftime("%m/%d/%Y"),
@@ -14,9 +18,6 @@ from src.utils.divide_chunks import divide_chunks
 #     last_day_month,
 # )
 from src.utils.path import get_project_root
-from datetime import datetime as dt, timedelta
-from src.sources.Rudata.RuDataDF import RuDataDF, RuDataPagesDF, LIMIT
-
 
 
 class Account(RuDataDF):
@@ -98,6 +99,10 @@ class Emitents(RuDataPagesDF):
                     'inn_as_string': True
                 } for i in range(LIMIT)
             ]
+
+    @RuDataStageSaver(table_name='Emitents')
+    def run(self) -> pd.DataFrame:
+        return super().run()
 
 
 class OfferorsGuarants(RuDataPagesDF):
@@ -269,6 +274,10 @@ class MoexStocks(RuDataPagesDF):
                     'filter': ''
                 } for i in range(LIMIT)
             ]
+
+    @RuDataStageSaver(table_name='MoexStocks')
+    def run(self) -> pd.DataFrame:
+        return super().run()
 
 
 class HistoryStockBonds(RuDataPagesDF):

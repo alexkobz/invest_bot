@@ -78,7 +78,7 @@ sources:
       - name: bonds
       - name: etfs
       - name: shares
-      - name: historic_candles1
+      - name: Candles1MinYesterday
   - name: finance_marker
     database: invest
     schema: finance_marker

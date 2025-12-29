@@ -1,8 +1,8 @@
+import asyncio
 import time
 from functools import wraps
 from logging import Logger
-from typing import Callable, Optional, Union, Tuple, Type
-import asyncio
+from typing import Callable, Optional, Tuple, Type, Union
 
 
 def retry(

@@ -8,10 +8,10 @@ Refactored for Python 3.
 @copyright: 2016 by MOEX
 """
 
-import urllib.request
-import urllib.parse
 import base64
 import http.cookiejar
+import urllib.parse
+import urllib.request
 
 
 class Config:

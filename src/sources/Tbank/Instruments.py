@@ -1,10 +1,11 @@
 import asyncio
+
 import pandas as pd
 from tinkoff.invest import RequestError
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.retrying.settings import RetryClientSettings
 
-from .Tbank import Tbank, logger
+from .Tbank import Tbank, TbankStageSaver, logger
 
 
 class Shares(Tbank):
@@ -21,9 +22,9 @@ class Shares(Tbank):
                 logger.error("Error tracking_id=%s code=%s", tracking_id, str(err.code))
         df = pd.DataFrame(shares_res.instruments)
         shares = await self._parse_response(df)
-        await self._finish_get_data(shares, 'shares')
         return shares
 
+    @TbankStageSaver(table_name='shares')
     def run(self) -> pd.DataFrame:
         return asyncio.run(self._get_shares())
 
@@ -42,9 +43,9 @@ class Bonds(Tbank):
                 logger.error("Error tracking_id=%s code=%s", tracking_id, str(err.code))
         df = pd.DataFrame(bonds_res.instruments)
         bonds = await self._parse_response(df)
-        await self._finish_get_data(bonds, 'bonds')
         return bonds
 
+    @TbankStageSaver(table_name='bonds')
     def run(self) -> pd.DataFrame:
         return asyncio.run(self._get_bonds())
 
@@ -63,8 +64,8 @@ class Etfs(Tbank):
                 logger.error("Error tracking_id=%s code=%s", tracking_id, str(err.code))
         df = pd.DataFrame(etfs_res.instruments)
         etfs = await self._parse_response(df)
-        await self._finish_get_data(etfs, 'etfs')
         return etfs
 
+    @TbankStageSaver(table_name='etfs')
     def run(self) -> pd.DataFrame:
         return asyncio.run(self._get_etfs())

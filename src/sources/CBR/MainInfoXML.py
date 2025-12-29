@@ -1,6 +1,8 @@
-import pandas as pd
 from datetime import date
-from src.sources.CBR.CBR import CBR
+
+import pandas as pd
+
+from src.sources.CBR.CBR import CBR, CBRStageSaver
 
 
 class MainInfoXML(CBR):
@@ -17,3 +19,7 @@ class MainInfoXML(CBR):
         df['date'] = pd.to_datetime(date.today())
         self.df = df
         return self.df
+
+    @CBRStageSaver(table_name='MainInfoXML')
+    def run(self):
+        return super().run()

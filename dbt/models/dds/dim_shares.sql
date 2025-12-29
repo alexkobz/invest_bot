@@ -68,4 +68,4 @@ SELECT
     r.emitent_inn
 FROM moex m
 FULL JOIN tbank t ON m.secid = t.ticker
-LEFT JOIN rudata r ON m.secid = r.secid
+LEFT JOIN rudata r ON COALESCE(m.secid, t.ticker) = r.secid

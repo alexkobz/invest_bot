@@ -1,12 +1,12 @@
+from datetime import datetime
+
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
-from datetime import datetime
 
-from utils.DbtOperator import DbtOperator
 from src.sources.Tbank.Instruments import Bonds, Etfs, Shares
-
+from utils.DbtOperator import DbtOperator
 
 with DAG(
     dag_id='tbank_instruments',

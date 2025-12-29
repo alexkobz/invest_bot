@@ -1,8 +1,9 @@
-import pandas as pd
 from datetime import date, datetime, timedelta
+
+import pandas as pd
 from zeep.helpers import serialize_object
 
-from src.sources.CBR.CBR import CBR
+from src.sources.CBR.CBR import CBR, CBRStageSaver
 
 
 class GetCursOnDate(CBR):
@@ -38,3 +39,7 @@ class GetCursOnDate(CBR):
         df['date'] = pd.to_datetime(self.on_date)
         self.df = df
         return self.df
+
+    @CBRStageSaver(table_name='GetCursOnDate')
+    def run(self):
+        return super().run()

@@ -1,30 +1,31 @@
 from __future__ import annotations
+
 import asyncio
-import os
-from pathlib import Path
-from time import sleep
-import aiohttp
 import socket
+from time import sleep
+from typing import Any, Dict, List
+
+import aiohttp
 import pandas as pd
-from typing import List, Dict
 
-from airflow.exceptions import AirflowSkipException
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-
-from src.utils.path import get_dotenv_path
-from src.utils.retries import retry
 from src.logger.Logger import Logger
+from src.postgres.StageSaver import StageSaver
 from src.sources.Rudata.RuData import RuDataStrategy
+from src.utils.retries import retry
 
-SCHEMA = 'rudata'
-LIMIT = 5
+SCHEMA: str = 'rudata'
+LIMIT: int = 5
+
 logger = Logger()
+
+
+class RuDataStageSaver(StageSaver):
+    def __init__(self, **kwargs):
+        super().__init__(schema=SCHEMA, **kwargs)
+
 
 class RuDataDF(RuDataStrategy):
 
-    # report_date = pd.to_datetime(last_day_month)
-    # report_yearmonth: str = last_day_month.strftime("%Y%m")
     headers: Dict[str, str] = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/39.0.2171.95 Safari/537.36',
@@ -34,51 +35,23 @@ class RuDataDF(RuDataStrategy):
     semaphore: asyncio.Semaphore = asyncio.Semaphore(LIMIT)
 
     def __init__(self):
-        self.name = self.__class__.__name__
         self._list_json: List[dict] = []
         self._df: pd.DataFrame = pd.DataFrame()
-        dotenv_path: Path = get_dotenv_path()
-        load_dotenv(dotenv_path=dotenv_path)
-        DATABASE_URI: str = (
-            f"postgresql://"
-            f"{os.environ['POSTGRES_USER']}:"
-            f"{os.environ['POSTGRES_PASSWORD']}@"
-            f"{os.environ['POSTGRES_HOST']}:"
-            f"{os.environ['POSTGRES_PORT']}/"
-            f"{os.environ['POSTGRES_DATABASE']}")
-        self.engine = create_engine(
-            DATABASE_URI,
-            connect_args={"options": f"-csearch_path={SCHEMA}"}
-        )
+
     @classmethod
     def set_headers(cls, headers: dict):
         cls.headers.update(headers)
 
-    def _finish_get_data(self, df: pd.DataFrame) -> bool:
-        if df.empty:
-            raise AirflowSkipException("Skipping this task as DataFrame is empty")
-        try:
-            try:
-                self.engine.execute(f'''TRUNCATE TABLE "{self.name}"''' , autocommit=True)
-            finally:
-                df.to_sql(
-                    name=self.name,
-                    con=self.engine,
-                    if_exists='append',
-                    index=False)
-            logger.info(f"{self.name} downloaded successfully")
-            return True
-        except Exception as e:
-            logger.exception(f"{self.name} failed to download due to\n{e}")
-            return False
-
-    @property
-    def df(self) -> pd.DataFrame:
+    def run(self) -> pd.DataFrame:
         if 'Authorization' not in self.headers or self.headers['Authorization'] is None or self.headers['Authorization'] == 'Bearer ':
             raise ValueError("Authorization header is not set. Run Account()")
         df: pd.DataFrame = asyncio.run(self.send_requests())
+        return df
+
+    @property
+    def df(self) -> pd.DataFrame:
+        df: pd.DataFrame = self.run()
         self._df = df
-        self._finish_get_data(df)
         return self._df
 
     @df.setter
@@ -97,11 +70,11 @@ class RuDataDF(RuDataStrategy):
             ) for payload in chunk_payloads]
 
     @staticmethod
-    async def safe_task(task, timeout=120):
+    async def safe_task(task, timeout=120) -> List[Any]:
         try:
             return await asyncio.wait_for(task, timeout=timeout)
         except asyncio.TimeoutError:
-            return "Timed out"
+            return []
 
     @retry(
         exceptions=(TimeoutError, ConnectionError, Exception),
@@ -109,7 +82,6 @@ class RuDataDF(RuDataStrategy):
         delay=100,
         logger=logger
     )
-
     async def execute_tasks(self, tasks: List[asyncio.Task]) -> bool:
         resAll: List[List[dict]] = await asyncio.gather(*(self.safe_task(t, 60) for t in tasks))
         result: List[dict] = [row for task_res in resAll for row in task_res]

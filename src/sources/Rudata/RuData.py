@@ -1,8 +1,10 @@
 from __future__ import annotations
-from collections.abc import Iterable
-import pandas as pd
+
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from typing import List
+
+import pandas as pd
 
 
 class RuDataStrategy(ABC):

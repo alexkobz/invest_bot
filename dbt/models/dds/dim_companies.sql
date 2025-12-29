@@ -23,4 +23,4 @@ SELECT DISTINCT ON (basis_company_id)
     auth_capital,
     address
 FROM {{ ref('moex_companies') }}
-ORDER BY id, update_time
+ORDER BY id, update_time DESC

@@ -1,8 +1,9 @@
-import pandas as pd
 from datetime import date, datetime, timedelta
+
+import pandas as pd
 from zeep.helpers import serialize_object
 
-from src.sources.CBR.CBR import CBR
+from src.sources.CBR.CBR import CBR, CBRStageSaver
 
 
 class Ruonia(CBR):
@@ -48,3 +49,7 @@ class Ruonia(CBR):
         df['date_update'] = pd.to_datetime(df['date_update'].apply(lambda x: x.replace(tzinfo=None)))
         self.df = df
         return self.df
+
+    @CBRStageSaver(table_name='Ruonia')
+    def run(self):
+        return super().run()

@@ -1,17 +1,17 @@
+from datetime import datetime
+
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
-from datetime import datetime
 
-from utils.DbtOperator import DbtOperator
-from src.sources.CBR.KeyRate import KeyRate
-from src.sources.CBR.GetCursOnDate import GetCursOnDate
-from src.sources.CBR.DragMetDynamic import DragMetDynamic
-from src.sources.CBR.Ruonia import Ruonia
 from src.sources.CBR.Bliquidity import Bliquidity
+from src.sources.CBR.DragMetDynamic import DragMetDynamic
+from src.sources.CBR.GetCursOnDate import GetCursOnDate
+from src.sources.CBR.KeyRate import KeyRate
 from src.sources.CBR.MainInfoXML import MainInfoXML
-
+from src.sources.CBR.Ruonia import Ruonia
+from utils.DbtOperator import DbtOperator
 
 with DAG(
     dag_id='cbr',
