@@ -19,6 +19,9 @@ models:
     staging:
       +schema: staging
       +materialized: view
-    core:
-      +schema: core
+    ods:
+      +schema: ods
+      +materialized: table
+    dds:
+      +schema: dds
       +materialized: table

@@ -1,8 +1,9 @@
-import pandas as pd
 from datetime import date, datetime, timedelta
+
+import pandas as pd
 from zeep.helpers import serialize_object
 
-from src.sources.CBR.CBR import CBR
+from src.sources.CBR.CBR import CBR, CBRStageSaver
 
 
 class Bliquidity(CBR):
@@ -58,3 +59,7 @@ class Bliquidity(CBR):
         df['DT'] = pd.to_datetime(df['DT'].apply(lambda x: x.replace(tzinfo=None)).dt.date)
         self.df = df
         return self.df
+
+    @CBRStageSaver(table_name='Bliquidity')
+    def run(self):
+        return super().run()

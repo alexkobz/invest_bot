@@ -1,4 +1,5 @@
 import pandas as pd
+
 from src.sources.CBR.CBR import CBR
 
 
@@ -209,5 +210,5 @@ class AllDataInfoXML(CBR):
         for tablename, dataframe in dataframes.items():
             self.method = tablename
             self.df = dataframe
-            self.save_df()
         return dataframes
+

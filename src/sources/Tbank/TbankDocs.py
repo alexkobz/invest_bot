@@ -3,11 +3,12 @@ https://tinkoff.github.io/investAPI/swagger-ui/#/
 """
 
 from __future__ import annotations
-import urllib.request
+
 import urllib.parse
+import urllib.request
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, asdict
-from typing import Optional, Dict, Any
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, Optional
 
 BASE = "https://invest-public-api.tbank.ru/rest"
 

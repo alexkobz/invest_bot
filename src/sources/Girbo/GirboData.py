@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import os
 from collections import defaultdict
+from pathlib import Path
+from time import sleep
+from typing import Dict, List
+
 import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -13,13 +17,9 @@ from selenium.webdriver.ie.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text as sa_text
-from time import sleep
-from typing import List, Dict
-
-from api_model_python import get_project_root, Path
 
 from src.logger.Logger import Logger
-
+from src.utils.path import get_dotenv_path
 
 logger = Logger()
 
@@ -29,8 +29,8 @@ class GirboData:
     _download_dir: str = '/opt/utils/data/girbo_fundamentals'
 
     def __init__(self):
-        env_path: Path = get_project_root()
-        load_dotenv(env_path)
+        dotenv_path: Path = get_dotenv_path()
+        load_dotenv(dotenv_path=dotenv_path)
         DATABASE_URI: str = (
             f"postgresql://"
             f"{os.environ['POSTGRES_USER']}:"

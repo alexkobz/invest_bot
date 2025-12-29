@@ -1,11 +1,11 @@
+from datetime import datetime
+
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
-from datetime import datetime
 
+from src.sources.Tbank.Candles import Candles1MinYesterday
 from utils.DbtOperator import DbtOperator
-from src.sources.Tbank.Candles import Candles1Min
-
 
 with DAG(
     dag_id='tbank_historic_candles1min',
@@ -19,11 +19,11 @@ with DAG(
 
     t2_api_tbank_historic_candles1min= PythonOperator(
         task_id='api_tbank_historic_candles1min',
-        python_callable=Candles1Min().run)
+        python_callable=Candles1MinYesterday().run)
     
     t3_tbank_historic_candles1min = DbtOperator(
-        task_id='tbank_historic_candles1min',
-        model='fct_tbank_historic_candles1min')
+        task_id='dbt_tbank_historic_candles1min',
+        model='tbank_historic_candles1min')
 
     finish = EmptyOperator(task_id='finish')
  

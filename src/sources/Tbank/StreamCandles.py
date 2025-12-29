@@ -1,21 +1,18 @@
 import asyncio
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from time import time
 from typing import List
 
 import pandas as pd
-from kafka import KafkaConsumer
-from tinkoff.invest import CandleInterval, AsyncClient, CandleInstrument, SubscriptionInterval
-from tinkoff.invest.market_data_stream.async_market_data_stream_manager import AsyncMarketDataStreamManager
+from tinkoff.invest import (AsyncClient, CandleInstrument, CandleInterval,
+                            SubscriptionInterval)
+from tinkoff.invest.market_data_stream.async_market_data_stream_manager import \
+    AsyncMarketDataStreamManager
 
-from .Tbank import Tbank, logger
-from src.kafka.tbank.candles_1min.consumer import consumer as consumer_candles_1min
-from src.kafka.tbank.candles_5min.consumer import consumer as consumer_candles_5min
-from ...kafka.tbank.candles_15min.consumer import consumer as consumer_candles_15min
-from ...kafka.tbank.candles_hour.consumer import consumer as consumer_candles_hour
-from ...kafka.tbank.candles_day.consumer import consumer as consumer_candles_day
+from kafka import KafkaConsumer
 from src.kafka.tbank.producer import producer
 from src.kafka.tbank.topics import Topic
+from src.sources.Tbank.Tbank import Tbank, logger
 
 
 class StreamCandles(Tbank):

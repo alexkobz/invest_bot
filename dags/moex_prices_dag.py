@@ -1,12 +1,11 @@
+from datetime import datetime
+
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
-from datetime import datetime
 
-from utils.ReplicationClickHouseOperator import ReplicationClickHouseOperator
-from utils.DbtOperator import DbtOperator
 from src.sources.Moex.Moex import Moex
-
+from utils.DbtOperator import DbtOperator
 
 with DAG(
     dag_id='moex_prices',
@@ -24,25 +23,15 @@ with DAG(
         task_id='api_moex_prices',
         python_callable=moex.getHistoryStockSharesSecurities)
     
-    t3_hst_moex_prices = DbtOperator(
-        task_id='hst_moex_prices',
-        model='hst_moex_prices')
-    
-    t4_fct_moex_prices = DbtOperator(
-        task_id='fct_moex_prices',
-        model='fct_moex_prices')
-
-    t5_replication_moex_prices = ReplicationClickHouseOperator(
-        task_id='replication_moex_prices',
-        filename='moex_prices')
+    t3_moex_prices = DbtOperator(
+        task_id='dbt_moex_prices',
+        model='moex_prices')
 
     finish = EmptyOperator(task_id='finish')
 
     (
         t1_start >>
         t2_api_moex_prices >>
-        t3_hst_moex_prices >>
-        t4_fct_moex_prices >>
-        t5_replication_moex_prices >>
+        t3_moex_prices >>
         finish
     )

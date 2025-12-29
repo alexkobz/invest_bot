@@ -1,8 +1,9 @@
-import pandas as pd
 from datetime import date, datetime, timedelta
+
+import pandas as pd
 from zeep.helpers import serialize_object
 
-from src.sources.CBR.CBR import CBR
+from src.sources.CBR.CBR import CBR, CBRStageSaver
 
 
 class DragMetDynamic(CBR):
@@ -52,3 +53,7 @@ class DragMetDynamic(CBR):
         df['date'] = pd.to_datetime(df['date'].apply(lambda x: x.replace(tzinfo=None)).dt.date)
         self.df = df
         return self.df
+
+    @CBRStageSaver(table_name='DragMetDynamic')
+    def run(self):
+        return super().run()

@@ -1,9 +1,8 @@
 import json
+
 from kafka import KafkaConsumer
-
-from src.kafka.tbank.topics import Topic
 from src.kafka.tbank.config import SERVER
-
+from src.kafka.tbank.topics import Topic
 
 consumer = KafkaConsumer(
     Topic.CANDLESDAY.value,

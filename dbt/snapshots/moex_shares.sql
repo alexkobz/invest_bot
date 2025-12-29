@@ -7,8 +7,7 @@
       check_cols=['secid', 'boardid', 'issuesize']
     )
 }}
-
-select
+select DISTINCT ON (secid, boardid, issuesize)
     md5(secid || boardid || coalesce(issuesize::text, '')) id,
     upper(secid) as secid,
     upper(boardid) as boardid,
@@ -38,6 +37,6 @@ select
     listlevel,
     cast(settledate as date) as settledate
 from {{ ref('stg_moex_shares') }}
-where issuesize is not null
+order by secid, boardid, cast(issuesize as bigint) DESC
 
 {% endsnapshot %}

@@ -1,7 +1,10 @@
 import typing as t
+
 from airflow_clickhouse_plugin.hooks.clickhouse import ExecuteReturnT
 from airflow_clickhouse_plugin.operators.clickhouse import ClickHouseOperator
-from src.utils.path import get_project_root, Path
+
+from src.utils.path import Path, get_project_root
+
 
 class ReplicationClickHouseOperator(ClickHouseOperator):
 

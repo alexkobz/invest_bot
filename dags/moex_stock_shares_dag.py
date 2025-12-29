@@ -1,13 +1,13 @@
+from datetime import datetime
+
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
-from datetime import datetime
 
+from src.sources.Moex.Moex import Moex
 from utils.DbtOperator import DbtOperator
 from utils.ReplicationClickHouseOperator import ReplicationClickHouseOperator
-from src.sources.Moex.Moex import Moex
-
 
 with DAG(
     dag_id='moex_stock_shares',

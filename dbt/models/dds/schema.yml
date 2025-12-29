@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: cbr_data
+    constraints:
+      - type: primary_key
+        columns: ['date']
+  - name: dim_companies
+    constraints:
+      - type: primary_key
+        columns: ['id']
+  - name: dim_shares
+    constraints:
+      - type: primary_key
+        columns: ['ticker']
+  - name: fct_annual_ratios
+    constraints:
+      - type: primary_key
+        columns: ["inn", "year", "ticker"]
+  - name: fct_daily_prices
+    constraints:
+      - type: primary_key
+        columns: ['secid', 'boardid', 'tradedate']

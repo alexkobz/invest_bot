@@ -1,20 +1,29 @@
-from abc import ABC, abstractmethod
-import pandas as pd
-from airflow.exceptions import AirflowSkipException
 import os
+from abc import ABC, abstractmethod
 from typing import Dict, List
+
+import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 
 from src.logger.Logger import Logger
+from src.postgres.engine import get_engine
+from src.postgres.StageSaver import StageSaver
 from src.utils.path import Path, get_dotenv_path
 
-
-SCHEMA = 'tbank'
+SCHEMA: str = 'tbank'
 
 logger = Logger()
+
 dotenv_path: Path = get_dotenv_path()
 load_dotenv(dotenv_path=dotenv_path)
+
+engine: Engine = get_engine(schema=SCHEMA)
+
+
+class TbankStageSaver(StageSaver):
+    def __init__(self, **kwargs):
+        super().__init__(schema=SCHEMA, **kwargs)
 
 
 class Tbank(ABC):
@@ -31,37 +40,7 @@ class Tbank(ABC):
     }
 
     def __init__(self):
-        DATABASE_URI: str = (
-            f"postgresql://"
-            f"{os.environ['POSTGRES_USER']}:"
-            f"{os.environ['POSTGRES_PASSWORD']}@"
-            f"{os.environ['POSTGRES_HOST']}:"
-            f"{os.environ['POSTGRES_PORT']}/"
-            f"{os.environ['POSTGRES_DATABASE']}")
-        self.engine = create_engine(
-            DATABASE_URI,
-            connect_args={"options": f"-csearch_path={SCHEMA}"}
-        )
         self.TOKEN = os.environ["INVEST_TOKEN"]
-
-    async def _finish_get_data(self, df: pd.DataFrame, table_name: str) -> bool:
-        if df.empty:
-            raise AirflowSkipException("Skipping this task as DataFrame is empty")
-        try:
-            try:
-                self.engine.execute(f'''TRUNCATE TABLE "{table_name}"''' , autocommit=True)
-            except Exception as e:
-                logger.error(e)
-            df.to_sql(
-                name=table_name,
-                con=self.engine,
-                if_exists='append',
-                index=False)
-            logger.info(f"{table_name} downloaded successfully")
-            return True
-        except Exception as e:
-            logger.exception(f"{table_name} failed to download due to\n{e}")
-            return False
 
     async def _parse_response(
             self,
@@ -84,12 +63,14 @@ class Tbank(ABC):
     @property
     def figis(self) -> List[str]:
         return pd.read_sql(
-            sql="""SELECT DISTINCT figi
-                   FROM shares
-                   WHERE coalesce(figi, '') != ''""",
-            con=self.engine
+            sql="""
+                SELECT DISTINCT figi
+                FROM shares
+                WHERE coalesce(figi, '') != ''
+            """,
+            con=engine
         )['figi'].tolist()
 
     @abstractmethod
-    def run(self) -> pd.DataFrame:
+    def run(self, *args, **kwargs) -> pd.DataFrame:
         raise NotImplementedError

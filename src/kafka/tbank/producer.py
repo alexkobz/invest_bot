@@ -1,8 +1,9 @@
 import json
+
 from kafka import KafkaProducer
+
 from .config import SERVER
 from .json_encoder import json_encoder
-
 
 producer = KafkaProducer(
     bootstrap_servers=[SERVER],
