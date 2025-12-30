@@ -13,7 +13,7 @@ class KeyRate(CBR):
 
     def __init__(
         self,
-        from_date: date = date.today() - timedelta(days=30),
+        from_date: date = date.today() - timedelta(days=365),
         to_date: date = date.today(),
     ):
         super().__init__()

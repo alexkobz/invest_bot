@@ -2,8 +2,8 @@
   config(
     materialized='incremental',
     incremental_strategy='merge',
-    unique_key=['secid', 'boardid', 'tradedate'],
-    merge_update_columns=['figi', 'open', 'close', 'low', 'high', 'volume']
+    unique_key=['ticker', 'boardid', 'date'],
+    merge_update_columns=['open', 'close', 'low', 'high', 'volume']
   )
 }}
 WITH moex AS (
@@ -21,7 +21,7 @@ WITH moex AS (
 
     {% if is_incremental() %}
 
-    WHERE tradedate > (SELECT MAX(tradedate) FROM {{ this }} )
+    WHERE tradedate > (SELECT MAX(date) FROM {{ this }} )
 
     {% endif %}
 
@@ -29,31 +29,29 @@ WITH moex AS (
 )
 , tbank AS (
     SELECT DISTINCT ON (ticker, "date")
-        c.figi,
+        UPPER(s.ticker) AS ticker,
         c."date",
         c.volume,
         c."open",
         c."close",
         c."low",
-        c."high",
-        UPPER(s.ticker) AS ticker
+        c."high"
     FROM {{ ref('tbank_historic_candles1min') }} c
     LEFT JOIN {{ ref('tbank_shares') }} s ON c.figi = s.figi
     WHERE COALESCE(s.ticker, '') != ''
 
     {% if is_incremental() %}
 
-    AND c."date" > (SELECT MAX(tradedate) FROM {{ this }} )
+    AND c."date" > (SELECT MAX(date) FROM {{ this }} )
 
     {% endif %}
 
     ORDER BY ticker, "date", "timestamp" DESC
 )
 SELECT
-	COALESCE(m.secid, t.ticker, '') AS secid,
+	COALESCE(m.secid, t.ticker, '') AS ticker,
 	COALESCE(m.boardid, 'TQBR') boardid,
-	COALESCE(m.tradedate, t."date") AS tradedate,
-	COALESCE(t.figi, '') AS figi,
+	COALESCE(m.tradedate, t."date") AS date,
 	COALESCE(m."open", t."open") AS "open",
 	COALESCE(m."close", t."close") AS "close",
 	COALESCE(m.low, t.low) AS low,

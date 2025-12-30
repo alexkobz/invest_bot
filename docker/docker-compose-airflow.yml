@@ -301,12 +301,13 @@ services:
         condition: service_completed_successfully
 
   postgres-db:
-    image: postgres:17
+    image: timescale/timescaledb:latest-pg17
     container_name: invest-postgres-db
     env_file:
       - ${AIRFLOW_PROJ_DIR:-..}/.env
     volumes:
       - invest_bot_postgres:/var/lib/postgresql/data
+      - ../src/postgres/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
     ports:
       - "5432:5432"
     healthcheck:
