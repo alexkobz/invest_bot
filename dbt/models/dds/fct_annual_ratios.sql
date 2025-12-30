@@ -2,7 +2,7 @@
   config(
     materialized='incremental',
     incremental_strategy='merge',
-    unique_key=["inn", "year", "ticker"],
+    unique_key=["year", "ticker", "inn"],
     merge_update_columns=['capex_revenue_rsbu', 'capex_revenue_msfo', 'capital_rsbu', 'capital_msfo',
      'current_ratio_rsbu', 'current_ratio_msfo', 'debt_equity_rsbu', 'debt_equity_msfo',
     'debt_ratio_rsbu', 'debt_ratio_msfo', 'debtebitda_rsbu', 'debtebitda_msfo', 'dpr_rsbu', 'dpr_msfo',
@@ -97,7 +97,7 @@ WITH fm_ratios AS (
         "year",
         code,
         changed_at
-    order by "year", code, changed_at::timestamp desc
+    ORDER BY "year", code, changed_at::timestamp desc
 )
 , girbo_fundamentals AS (
     SELECT DISTINCT ON ("year", inn)
@@ -281,7 +281,7 @@ WITH fm_ratios AS (
         "3412",
         "3422"
     FROM {{ ref('girbo_fundamentals') }}
-    order by "year", inn
+    ORDER BY "year", inn
 )
 , dim_shares AS (
     SELECT
@@ -291,9 +291,9 @@ WITH fm_ratios AS (
 )
 SELECT
     nextval('events_id_seq') id,
-    COALESCE(s.emitent_inn, g.inn, '') AS inn,
     COALESCE(fm."year", g."year") AS "year",
     COALESCE(fm.code, s.ticker, '') ticker,
+    COALESCE(s.emitent_inn, g.inn, '') AS inn,
     fm.capex_revenue_rsbu,
     fm.capex_revenue_msfo,
     fm.capital_rsbu,

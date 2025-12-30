@@ -16,7 +16,6 @@ class GetCursDynamic(CBR):
         from_date: date = date.today() - timedelta(days=30),
         to_date: date = date.today(),
         currency: str = 'USD',
-
     ):
         super().__init__()
         if isinstance(from_date, str):

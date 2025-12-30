@@ -13,7 +13,7 @@ class GetCursOnDate(CBR):
 
     def __init__(
         self,
-        on_date: date = date.today() - timedelta(days=30),
+        on_date: date = date.today() - timedelta(days=1),
     ):
         super().__init__()
         if isinstance(on_date, str):
